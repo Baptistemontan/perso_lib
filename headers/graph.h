@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include "../headers/dynarr.h"
 
+// create a node with no edge
+// must be free with graph_freeNode()
 #define graph_createEmptyNode(value) graph_createNode(value, 0, NULL);
 
 typedef struct graph_node
@@ -28,23 +30,50 @@ typedef struct graph_edge
 
 } graph_edge;
 
+typedef void* (*graph_todo_fn)(void* value, void* args);
+typedef double (*graph_heuristic_fn)(void* value, void* goalInfo);
+typedef bool (*graph_isGoal_fn)(void* value, void* goalInfo);
 
+// create an edge with the given src, dest and weight
+// can be free with free()
 graph_edge* graph_createEdge(graph_node* src, double weight, graph_node* dest);
 
+// create a node with the given value and set of edges
+// nb_edges can be set to 0 and edges to NULL
+// must be free with graph_freeNode()
 graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges);
 
+// free a node and return its value
 void* graph_freeNode(graph_node* node);
 
+// add nb_edges of edges to the given node
 void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges);
 
+// add the given edge to the given node
 void graph_addEdge(graph_node* node, graph_edge* edge);
 
-void* graph_DFS(graph_node* node, void* (*todo_fn)(void* value, void* args), void* args);
+// execute a DFS from the given node
+// stop and return the first non NULL value returned by todo_fn
+// if todo_fn don't return a non NULL value when all node are visited, return NULL
+// args is passed as the second param of todo_fn
+void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args);
 
-void* graph_BFS(graph_node* node, void* (*todo_fn)(void* value, void* args), void* args);
+// execute a BFS from the given node
+// stop and return the first non NULL value returned by todo_fn
+// if todo_fn don't return a non NULL value when all node are visited, return NULL
+// args is passed as the second param of todo_fn
+void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args);
 
+// do a DFS on the given node and free all the reachable nodes and their edges
+// pass the value of all nodes to free_fn if its not NULL
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, bool (*isGoal_fn)(void* node, void* goalInfo), double (*heuristic_fn)(void* node, void* goalInfo));
+// output a dynarr of edges that makes the shortest path from the node to the goal
+// isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
+// heuristic_fn return the heuristic value of the node with the given value based on the goalInfo
+// if heuristic_fn is NULL, this is just a dijkstra algorithm
+// if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
+// if their is no path, return NULL
+dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn);
 
 #endif
