@@ -22,10 +22,7 @@ int main(int argc, char const *argv[])
 
     double*** mat2 = malloc(sizeof(double**) * SIZE);
     for(uint i = 0; i < SIZE; i++) {
-        mat2[i] = malloc(sizeof(double*) * SIZE);
-        for(uint j = 0; j < SIZE; j++) {
-            mat2[i][j] = mat[i][j];
-        }
+        mat2[i] = mat[i];
     }
 
     void* values[SIZE];
@@ -44,7 +41,6 @@ int main(int argc, char const *argv[])
     graph_freeGraph(node, free);
     free(graph);
     for(uint i = 0; i < SIZE; i++) {
-        free(mat2[i]);
         for(uint j = 0; j < SIZE; j++) {
             free(mat[i][j]);
         }
