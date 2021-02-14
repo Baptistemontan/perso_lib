@@ -4,7 +4,7 @@ static void* graph_private_DFS(graph_node* node, void** args);
 static void* graph_private_reset(void* node, size_t index, size_t offset, void* args);
 
 
-#define UNVISIT(visited) dynarr_forEach(visited, graph_private_reset, NULL); dynarr_free(visited);
+#define UNVISIT(visited) dynarr_forEach(visited, graph_private_reset, NULL), dynarr_free(visited)
 
 enum {
     ARGS_FN = 0,
@@ -39,12 +39,35 @@ graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
 
 void* graph_freeNode(graph_node* node) {
     void* tmp = node->value;
-    while(dynarr_getSize(node->edges)) {
+    while(dynarr_getSize(node->edges) > 0) {
         free(dynarr_pop(node->edges));
     }
     dynarr_free(node->edges);
     free(node);
     return tmp;
+}
+
+static void graph_private_freeGraph(graph_node* node, dynarr_arr* queue) {
+    if(node == NULL || node->visited) return;
+    node->visited = true;
+    dynarr_push(queue, node);
+    graph_edge* edge = NULL;
+    while(dynarr_getSize(node->edges)) {
+        edge = dynarr_pop(node->edges);
+        graph_private_freeGraph(edge->dest, queue);
+        free(edge);
+    }
+}
+
+void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
+    dynarr_arr* queue = DYNARR_INIT;
+    graph_private_freeGraph(node, queue);
+    graph_node* currentNode = NULL;
+    while(dynarr_getSize(queue) > 0) {
+        currentNode = dynarr_pop(queue);
+        if(free_fn != NULL) free_fn(currentNode->value);
+        graph_freeNode(currentNode);
+    }
 }
 
 void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges) {
@@ -127,23 +150,11 @@ void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
     return tmp;
 }
 
-void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
-    if(node == NULL || node->visited) return;
-    node->visited = true;
-    graph_edge* edge = NULL;
-    while(dynarr_getSize(node->edges)) {
-        edge = dynarr_pop(node->edges);
-        graph_freeGraph(edge->dest, free_fn);
-        free(edge);
-    }
-    if(free_fn != NULL) free_fn(node->value);
-    graph_freeNode(node);
-}
-
 static void* graph_private_reset(void* node, size_t index, size_t offset, void* args) {
     ((graph_node*)node)->pathEdge = NULL;
     ((graph_node*)node)->distance = 0;
     ((graph_node*)node)->visited = false;
+    ((graph_node*)node)->pathEdge = NULL;
     return NULL;
 }
 
@@ -218,3 +229,20 @@ dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal
     dynarr_free(queue);
     return tmp;
 }
+
+graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adjencyMat) {
+    if(nvalues == 0) return NULL;
+    graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
+    for(size_t i = 0; i < nvalues; i++) {
+        nodes[i] = graph_createEmptyNode(values[i]);
+    }
+    for(size_t i = 0; i < nvalues; i++) {
+        for(size_t j = 0; j < nvalues; j++) {
+            if(adjencyMat[i][j] != NULL) {
+                graph_link(nodes[i], nodes[j], *(adjencyMat[i][j]));
+            }
+        }
+    }
+    return nodes;
+}
+
