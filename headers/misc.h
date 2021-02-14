@@ -59,6 +59,6 @@ void* misc_arrAdd(void* dest, size_t nmemb, size_t bSize, void* src, void (*free
 void* misc_arrRm(void* dest, size_t nmemb, size_t bSize, size_t index, void (*free_fn)(void*), void (*error_fn)(char*));
 
 // print to stderr the given string
-void misc_printErr(char* str);
+void misc_printErr(const char* str);
 
 #endif

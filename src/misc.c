@@ -93,6 +93,6 @@ void* misc_arrRm(void* dest, size_t nmemb, size_t bSize, size_t index, void (*fr
     return arr;
 }
 
-void misc_printErr(char* str) {
+void misc_printErr(const char* str) {
     fprintf(stderr, "error: %s\n", str);
 }
