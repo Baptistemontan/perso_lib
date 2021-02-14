@@ -80,7 +80,7 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 // if weighted is false, consider all edges weight to be 0, but still use the heuristic value
 // if heuristic_fn is NULL, this is just a dijkstra algorithm
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
-// if their is no path, return NULL
+// return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
 dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
