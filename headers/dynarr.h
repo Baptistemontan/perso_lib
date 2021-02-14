@@ -102,9 +102,10 @@ void dynarr_fill_interval(dynarr_arr* arr, size_t start, size_t nmemb, void* val
 size_t dynarr_getSize(dynarr_arr* arr);
 
 // execute a binary search in the array using comp_fn
+// return the index of the first element in the array that match the value
 // assume that the array is already sorted
 // pass all the element after start if nmemb == 0
 // return -1 if the searched element is not in the interval
-int dynarr_bsearch_interval(dynarr_arr* arr, size_t start, size_t nmemb, void* value, __compar_fn_t comp_fn);
+long dynarr_bsearch_interval(dynarr_arr* arr, size_t start, size_t nmemb, void* value, __compar_fn_t comp_fn);
 
 #endif

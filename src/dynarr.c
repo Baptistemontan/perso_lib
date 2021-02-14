@@ -172,18 +172,22 @@ inline size_t dynarr_getSize(dynarr_arr* arr) {
     return arr->size;
 }
 
-int dynarr_bsearch_interval(dynarr_arr* arr, size_t start, size_t nmemb, void* value, __compar_fn_t compare) {
+long dynarr_bsearch_interval(dynarr_arr* arr, size_t start, size_t nmemb, void* value, __compar_fn_t compare) {
     if(arr == NULL) return -1;
     if(start >= arr->size) return -1;
     if(nmemb == 0) nmemb = arr->size - start;
     size_t end = start + nmemb - 1;
-    size_t mid;
+    long mid;
     int comp;
     while(end >= start) {
         mid = (start + end) / 2;
         comp = compare(arr->arr[mid],value);
         if(comp == 0) {
-            return mid;
+            mid--;
+            while(mid >= 0 && compare(arr->arr[mid],value) == 0) {
+                mid--;
+            }
+            return mid + 1;
         } else if(comp < 0) {
             start = mid + 1;
         } else {
