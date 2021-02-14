@@ -98,8 +98,8 @@ static void* graph_private_BFS_addUnvisited(void* _edge, size_t index, size_t of
 }
 
 static void* graph_private_BFS(dynarr_arr* queue, void** args) {
-    graph_node* currentNode;
-    void* test;
+    graph_node* currentNode = NULL;
+    void* test = NULL;
     void* (*todo_fn)(void*, void*) = args[ARGS_FN];
     while(dynarr_getSize(queue)) {
         currentNode = dynarr_popFront(queue);
@@ -130,7 +130,7 @@ void* graph_BFS(graph_node* node, void* (*todo_fn)(void* value, void* args), voi
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
     if(node == NULL || node->visited) return;
     node->visited = true;
-    graph_edge* edge;
+    graph_edge* edge = NULL;
     while(dynarr_getSize(node->edges)) {
         edge = dynarr_pop(node->edges);
         graph_freeGraph(edge->dest, free_fn);

@@ -94,7 +94,7 @@ void* ht_removePair(ht_htable* table, char* key) {
 }
 
 void ht_map(ht_htable* src, ht_htable* dest) {
-    struct ht_pair* pair;
+    struct ht_pair* pair = NULL;
     for(size_t i = 0; i < src->size; i++) {
         pair = src->table[i];
         while (pair != NULL) {
@@ -106,7 +106,7 @@ void ht_map(ht_htable* src, ht_htable* dest) {
 
 void ht_print(ht_htable* table) {
     struct ht_pair** arr = table->table;
-    struct ht_pair* pair;
+    struct ht_pair* pair = NULL;
     printf("--------------------------------\n");
     for(size_t i = 0; i < table->size; i++) {
         pair = arr[i];
@@ -129,7 +129,7 @@ void ht_save(ht_htable* table, char* path, ht_write_fn write_fn) {
         exit(EXIT_FAILURE);
     }
     char buff[SIZEBUFF];
-    struct ht_pair* pair;
+    struct ht_pair* pair = NULL;
     for(size_t i = 0; i < table->size; i++) {
         pair = table->table[i];
         while(pair != NULL) {
