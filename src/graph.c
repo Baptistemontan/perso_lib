@@ -245,4 +245,3 @@ graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adj
     }
     return nodes;
 }
-

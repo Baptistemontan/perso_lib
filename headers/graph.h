@@ -89,7 +89,15 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
 dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
-
+// return an array of nvalues nodes where nodes[k] has the value values[k]
+// all nodes are linked together has the adjency matrice say
+// adjencyMat must be has follow:
+// adjencyMat[a][b] is a double adress of the weight of the edge from a to b
+// if adjencyMat[a][b] is NULL their is no edge
+// exemple: their is n values, consider 0 <= a,b < n 
+// the distance from values[a] to values[b] is adjencyMat[a][b]
+// and the distance from values[b] to values[a] is adjencyMat[b][a];
+// return NULL is nvalues == 0
 graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adjencyMat);
 
 
