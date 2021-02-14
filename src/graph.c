@@ -181,7 +181,7 @@ static dynarr_arr* graph_private_Astar(dynarr_arr* queue, graph_isGoal_fn isGoal
         dynarr_arr* path = DYNARR_INIT;
         while(currentNode != NULL) {
             dynarr_pushFront(path, currentNode->pathEdge);
-            currentNode = currentNode->pathEdge->dest;
+            currentNode = currentNode->pathEdge->src;
         }
         return path;
     }
