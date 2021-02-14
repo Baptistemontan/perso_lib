@@ -11,6 +11,12 @@
 // must be free with graph_freeNode()
 #define graph_createEmptyNode(value) graph_createNode(value, 0, NULL);
 
+// create an edge from src to dest and add it to the src node
+#define graph_link(src, weight, dest) graph_addEdge(src, graph_createEdge(src,weight,dest));
+
+// create a bidirectionnal link beetween a and b
+#define graph_linkBi(a, weight, b) graph_link(a,weight,b); graph_link(b, weight, a);
+
 typedef struct graph_node
 {
     dynarr_arr* edges;
