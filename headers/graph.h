@@ -9,13 +9,13 @@
 
 // create a node with no edge
 // must be free with graph_freeNode()
-#define graph_createEmptyNode(value) graph_createNode(value, 0, NULL);
+#define graph_createEmptyNode(value) graph_createNode(value, 0, NULL)
 
 // create an edge from src to dest and add it to the src node
-#define graph_link(src, dest, weight) graph_addEdge(src, graph_createEdge(src,dest,weight));
+#define graph_link(src, dest, weight) graph_addEdge(src, graph_createEdge(src,dest,weight))
 
 // create a bidirectionnal link beetween a and b
-#define graph_linkBi(a, weight, b) graph_link(a,b,weight); graph_link(b,a,weight);
+#define graph_linkBi(a, weight, b) graph_link(a,b,weight), graph_link(b,a,weight)
 
 typedef struct graph_node
 {
@@ -88,5 +88,9 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 // return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
 dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
+
+
+graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adjencyMat);
+
 
 #endif
