@@ -7,6 +7,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "hashtable.h"
 #include "tree.h"
