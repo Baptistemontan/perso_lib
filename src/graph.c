@@ -14,7 +14,7 @@ enum {
     ARGS_SIZE = 4
 };
 
-graph_edge* graph_createEdge(graph_node* src, double weight, graph_node* dest) {
+graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
     graph_edge* edge = malloc(sizeof(graph_edge));
     if(edge == NULL) return NULL;
     edge->src = src;
