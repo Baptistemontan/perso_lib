@@ -35,7 +35,7 @@ typedef void* (*dynarr_map_fn)(const void* value, size_t index, size_t offset);
 dynarr_arr* dynarr_new();
 
 // free the given dynamic arr
-void dynarr_free(dynarr_arr* arr);
+void dynarr_free(dynarr_arr* arr, void (*free_fn)(void*));
 
 // push at the end of the array a new value
 // return the value

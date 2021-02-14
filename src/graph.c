@@ -4,7 +4,7 @@ static void* graph_private_DFS(graph_node* node, void** args);
 static void* graph_private_reset(void* node, size_t index, size_t offset, void* args);
 
 
-#define UNVISIT(visited) dynarr_forEach(visited, graph_private_reset, NULL), dynarr_free(visited)
+#define UNVISIT(visited) dynarr_forEach(visited, graph_private_reset, NULL), dynarr_free(visited, NULL)
 
 enum {
     ARGS_FN = 0,
@@ -39,10 +39,7 @@ graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
 
 void* graph_freeNode(graph_node* node) {
     void* tmp = node->value;
-    while(dynarr_getSize(node->edges) > 0) {
-        free(dynarr_pop(node->edges));
-    }
-    dynarr_free(node->edges);
+    dynarr_free(node->edges, free);
     free(node);
     return tmp;
 }
@@ -226,7 +223,7 @@ dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal
     args[ARGS_VISITED] = visited;
     dynarr_arr* tmp = graph_private_Astar(queue, isGoal_fn, args, weighted);
     UNVISIT(visited);
-    dynarr_free(queue);
+    dynarr_free(queue, NULL);
     return tmp;
 }
 

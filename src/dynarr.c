@@ -10,8 +10,13 @@ dynarr_arr* dynarr_new() {
     return array;
 }
 
-void dynarr_free(dynarr_arr* arr) {
+void dynarr_free(dynarr_arr* arr, void (*free_fn)(void*)) {
     if(arr == NULL) return;
+    if(free_fn != NULL) {
+        for(size_t i = 0; i < arr->size; i++) {
+            free_fn(arr->arr[i]);
+        }
+    }
     free(arr->baseArr);
     free(arr);
 }
