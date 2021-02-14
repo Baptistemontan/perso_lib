@@ -35,7 +35,7 @@ typedef double (*graph_heuristic_fn)(void* value, void* goalInfo);
 typedef bool (*graph_isGoal_fn)(void* value, void* goalInfo);
 
 // create an edge with the given src, dest and weight
-// can be free with free()
+// must be free with free()
 graph_edge* graph_createEdge(graph_node* src, double weight, graph_node* dest);
 
 // create a node with the given value and set of edges
