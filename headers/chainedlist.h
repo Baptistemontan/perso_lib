@@ -1,13 +1,14 @@
 #ifndef HEAD_CHAINEDLIST
 #define HEAD_CHAINEDLIST
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define CL_INIT NULL
 
 // macro for sorting an entire list
 #define cl_qsort(list, comp_fn) cl_qsort_interval(list, NULL, comp_fn)
 
-#include <stdio.h>
-#include <stdlib.h>
 
 typedef struct cl_node {
     struct cl_node *next;
