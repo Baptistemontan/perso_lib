@@ -38,7 +38,7 @@ int misc_comp_float_inv(const void* a, const void* b) {
     return -1 * misc_comp_float(b, a);
 }
 
-char* misc_createstr(const char* str, size_t sizeMax, void (*error_fn)(char*)) {
+char* misc_createstr(const char* str, size_t sizeMax, misc_errHandle_fn error_fn) {
     size_t len = strlen(str);
     if(len > sizeMax && sizeMax > 0) len = sizeMax - 1;
     char* output = malloc(sizeof(char) * (len + 1));
@@ -51,7 +51,7 @@ char* misc_createstr(const char* str, size_t sizeMax, void (*error_fn)(char*)) {
     return output;
 }
 
-int* misc_createint(int a, void (*error_fn)(char*)) {
+int* misc_createint(int a, misc_errHandle_fn error_fn) {
     int* b = malloc(sizeof(int));
     if(b == NULL) {
         if(error_fn != NULL) error_fn(MEMERR);
@@ -61,7 +61,7 @@ int* misc_createint(int a, void (*error_fn)(char*)) {
     return b;
 }
 
-uint* misc_createuint(uint a, void (*error_fn)(char*)) {
+uint* misc_createuint(uint a, misc_errHandle_fn error_fn) {
     uint* b = malloc(sizeof(uint));
     if(b == NULL) {
         if(error_fn != NULL) error_fn(MEMERR);
@@ -71,7 +71,17 @@ uint* misc_createuint(uint a, void (*error_fn)(char*)) {
     return b;
 }
 
-void* misc_arrAdd(void* dest, size_t nmemb, size_t bSize, void* src, void (*free_fn)(void*), void (*error_fn)(char*)) {
+double* misc_createdouble(double a, misc_errHandle_fn error_fn) {
+    double* b = malloc(sizeof(double));
+    if(b == NULL) {
+        if(error_fn != NULL) error_fn(MEMERR);
+        return NULL;
+    }
+    *b = a;
+    return b;
+}
+
+void* misc_arrAdd(void* dest, size_t nmemb, size_t bSize, void* src, void (*free_fn)(void*), misc_errHandle_fn error_fn) {
     void* arr = malloc(bSize * (nmemb + 1));
     if(arr == NULL) {
         if(error_fn != NULL) error_fn(MEMERR);
@@ -83,7 +93,7 @@ void* misc_arrAdd(void* dest, size_t nmemb, size_t bSize, void* src, void (*free
     return arr;
 }
 
-void* misc_arrRm(void* dest, size_t nmemb, size_t bSize, size_t index, void (*free_fn)(void*), void (*error_fn)(char*)) {
+void* misc_arrRm(void* dest, size_t nmemb, size_t bSize, size_t index, void (*free_fn)(void*), misc_errHandle_fn error_fn) {
     void* arr = malloc(bSize * (nmemb - 1));
     if(arr == NULL) {
         if(error_fn != NULL) error_fn(MEMERR);
