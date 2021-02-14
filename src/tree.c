@@ -11,25 +11,25 @@ tree_node* tree_buildPre(void** preorder, void** inorder, size_t size){
     return head;
 }
 
-void tree_printPre(const tree_node* root, tree_print_fn print_fn) {
+void tree_forEachPre(tree_node* root, tree_forEach_fn todo_fn) {
     if(root == NULL) return;
-    print_fn(root->val);
-    tree_printPre(root->left, print_fn);
-    tree_printPre(root->right, print_fn);
+    todo_fn(root->val);
+    tree_forEachPre(root->left, todo_fn);
+    tree_forEachPre(root->right, todo_fn);
 }
 
-void tree_printIn(const tree_node* root, tree_print_fn print_fn) {
+void tree_forEachIn(tree_node* root, tree_forEach_fn todo_fn) {
     if(root == NULL) return;
-    tree_printIn(root->left, print_fn);
-    print_fn(root->val);
-    tree_printIn(root->right, print_fn);
+    tree_forEachIn(root->left, todo_fn);
+    todo_fn(root->val);
+    tree_forEachIn(root->right, todo_fn);
 }
 
-void tree_printPost(const tree_node* root, tree_print_fn print_fn) {
+void tree_forEachPost(tree_node* root, tree_forEach_fn todo_fn) {
     if(root == NULL) return;
-    tree_printPost(root->left, print_fn);
-    tree_printPost(root->right, print_fn);
-    print_fn(root->val);
+    tree_forEachPost(root->left, todo_fn);
+    tree_forEachPost(root->right, todo_fn);
+    todo_fn(root->val);
 }
 
 static void** tree_private_getPre(const tree_node* root, void** preorder, size_t* size) {
@@ -120,15 +120,15 @@ size_t tree_isBalanced(const tree_node* root) {
 
 
 
-void tree_private_printLevel(tree_node** stack, size_t size, tree_print_fn print_fn) {
+void tree_private_forEachLevel(tree_node** stack, size_t size, tree_forEach_fn todo_fn) {
     size_t count = 0;
     tree_node** newStack = malloc(sizeof(tree_node*) * size * 2);
     for(int i = 0; i < size;i++) {
         if(stack[i] == NULL) {
-            print_fn(NULL);
+            todo_fn(NULL);
         } else {
             if(stack[i]->right != NULL || stack[i]->left != NULL) count++;
-            print_fn(stack[i]->val);
+            todo_fn(stack[i]->val);
             newStack[i * 2] = stack[i]->left;
             newStack[i * 2 + 1] = stack[i]->right;
         }
@@ -139,13 +139,13 @@ void tree_private_printLevel(tree_node** stack, size_t size, tree_print_fn print
         free(newStack);
         return;
     }
-    tree_private_printLevel(newStack, size * 2, print_fn);
+    tree_private_forEachLevel(newStack, size * 2, todo_fn);
 }
 
-void tree_printLevel(tree_node* root, tree_print_fn print_fn) {
+void tree_forEachLevel(tree_node* root, tree_forEach_fn todo_fn) {
     tree_node** stack = malloc(sizeof(tree_node*));
     *stack = root;
-    tree_private_printLevel(stack, 1, print_fn);
+    tree_private_forEachLevel(stack, 1, todo_fn);
 }
 
 tree_node* tree_createBalanced(void** arr, size_t size) {
