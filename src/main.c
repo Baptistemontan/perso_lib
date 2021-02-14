@@ -2,7 +2,7 @@
 
 #define SIZE 5
 #define cdouble(a) misc_createdouble(a, misc_printErr)
-#define rien cdouble(0)
+#define noweight cdouble(0)
 
 void* print_uint(void* num, void* args) {
     printf("%u\n",*(uint*)num);
@@ -13,11 +13,11 @@ void* print_uint(void* num, void* args) {
 int main(int argc, char const *argv[])
 {
     double* mat[SIZE][SIZE] = {
-        {NULL, rien, NULL, NULL, NULL},
-        {rien, NULL, rien, NULL, NULL},
-        {rien, NULL, NULL, NULL, rien},
-        {rien, NULL, NULL, NULL, rien},
-        {NULL, NULL, rien, rien, NULL}
+        {NULL, noweight, NULL, NULL, NULL},
+        {noweight, NULL, noweight, NULL, NULL},
+        {noweight, NULL, NULL, NULL, noweight},
+        {noweight, NULL, NULL, NULL, noweight},
+        {NULL, NULL, noweight, noweight, NULL}
     };
 
     double*** mat2 = malloc(sizeof(double**) * SIZE);
