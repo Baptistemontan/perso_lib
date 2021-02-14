@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MEMERR "memory allocation impossible."
-
 // compare 2 int
 int misc_comp_int(const void* a, const void* b);
 

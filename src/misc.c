@@ -1,5 +1,7 @@
 #include "../headers/misc.h"
 
+#define MEMERR "memory allocation impossible."
+
 int misc_comp_int(const void* a, const void* b) {
     const int *ia = (const int *)a;
     const int *ib = (const int *)b;
