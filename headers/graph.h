@@ -14,20 +14,22 @@ typedef struct graph_node
     dynarr_arr* edges;
     bool visited;
     void* value;
-    size_t distance;
-    size_t heuristic;
-    struct graph_node* parent;
+    double distance;
+    double heuristic;
+    struct graph_edge* pathEdge;
 } graph_node;
 
 typedef struct graph_edge
 {
-    size_t weight;
+
+    double weight;
+    graph_node* src;
     graph_node* dest;
 
 } graph_edge;
 
 
-graph_edge* graph_createEdge(size_t weight, graph_node* dest);
+graph_edge* graph_createEdge(graph_node* src, double weight, graph_node* dest);
 
 graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges);
 
@@ -43,6 +45,6 @@ void* graph_BFS(graph_node* node, void* (*todo_fn)(void* value, void* args), voi
 
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, bool (*isGoal_fn)(void* node, void* goalInfo), size_t (*heuristic_fn)(void* node, void* goalInfo));
+dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, bool (*isGoal_fn)(void* node, void* goalInfo), double (*heuristic_fn)(void* node, void* goalInfo));
 
 #endif
