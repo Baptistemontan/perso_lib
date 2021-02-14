@@ -147,12 +147,18 @@ static void* graph_private_reset(void* node, size_t index, size_t offset, void* 
     return NULL;
 }
 
-static int graph_private_sortDist(const void* a, const void* b) {
+static int graph_private_sortDistWeighted(const void* a, const void* b) {
     const graph_node* ia = a;
     const graph_node* ib = b;
     const double da = ia->distance + ia->heuristic;
     const double db = ib->distance + ib->heuristic;
     return (da > db) - (da < db);
+}
+
+static int graph_private_sortDistUnweighted(const void* a, const void* b) {
+    const graph_node* ia = a;
+    const graph_node* ib = b;
+    return (ia->heuristic > ib->heuristic) - (ia->heuristic < ib->heuristic);
 }
 
 static void* graph_private_Astar_visitNeighbours(void* _edge, size_t index, size_t offset, void* _args) {
@@ -174,23 +180,29 @@ static void* graph_private_Astar_visitNeighbours(void* _edge, size_t index, size
     return NULL;
 }
 
-static dynarr_arr* graph_private_Astar(dynarr_arr* queue, graph_isGoal_fn isGoal_fn, void** args) {
-    if(dynarr_getSize(queue) == 0) return NULL;
-    graph_node* currentNode = dynarr_popFront(queue);
-    if(isGoal_fn(currentNode->value, args[ARGS_ARGS])) {
-        dynarr_arr* path = DYNARR_INIT;
-        while(currentNode != NULL) {
-            dynarr_pushFront(path, currentNode->pathEdge);
-            currentNode = currentNode->pathEdge->src;
+static dynarr_arr* graph_private_Astar(dynarr_arr* queue, graph_isGoal_fn isGoal_fn, void** args, bool weighted) {
+    graph_node* currentNode = NULL;
+    while(dynarr_getSize(queue)) {
+        currentNode = dynarr_popFront(queue);
+        if(isGoal_fn(currentNode->value, args[ARGS_ARGS])) {
+            dynarr_arr* path = DYNARR_INIT;
+            while(currentNode != NULL) {
+                dynarr_pushFront(path, currentNode->pathEdge);
+                currentNode = currentNode->pathEdge->src;
+            }
+            return path;
         }
-        return path;
+        dynarr_forEach(currentNode->edges,graph_private_Astar_visitNeighbours,args);
+        if(weighted) {
+            dynarr_qsort(queue, graph_private_sortDistWeighted);
+        } else if(args[ARGS_FN] != NULL) {
+            dynarr_qsort(queue, graph_private_sortDistUnweighted);
+        }
     }
-    dynarr_forEach(currentNode->edges,graph_private_Astar_visitNeighbours,args);
-    dynarr_qsort(queue, graph_private_sortDist);
-    return graph_private_Astar(queue, isGoal_fn, args);
+    return NULL;
 }
 
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn) {
+dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
     if(node == NULL) return NULL;
     dynarr_arr* queue = DYNARR_INIT;
     dynarr_arr* visited = DYNARR_INIT;
@@ -201,7 +213,7 @@ dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal
     args[ARGS_FN] = heuristic_fn;
     args[ARGS_ARGS] = goalInfo;
     args[ARGS_VISITED] = visited;
-    dynarr_arr* tmp = graph_private_Astar(queue, isGoal_fn, args);
+    dynarr_arr* tmp = graph_private_Astar(queue, isGoal_fn, args, weighted);
     UNVISIT(visited);
     dynarr_free(queue);
     return tmp;

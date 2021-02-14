@@ -77,9 +77,10 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 // output a dynarr of edges that makes the shortest path from the node to the goal
 // isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
 // heuristic_fn return the heuristic value of the node with the given value based on the goalInfo
+// if weighted is false, consider all edges weight to be 0, but still use the heuristic value
 // if heuristic_fn is NULL, this is just a dijkstra algorithm
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
 // if their is no path, return NULL
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn);
+dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
 #endif
