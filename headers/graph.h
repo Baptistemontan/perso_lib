@@ -36,8 +36,13 @@ typedef struct graph_edge
 
 } graph_edge;
 
+
 typedef void* (*graph_todo_fn)(void* value, void* args);
+
+// return an heuristic value for a given value based on the goalInfo
 typedef double (*graph_heuristic_fn)(void* value, void* goalInfo);
+
+// return if the given value is the goal based on the goalInfo
 typedef bool (*graph_isGoal_fn)(void* value, void* goalInfo);
 
 // create an edge with the given src, dest and weight
