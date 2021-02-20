@@ -7,8 +7,10 @@ static size_t ht_private_defaultHash(size_t size, char* key) {
         sum1 += sum2 + i + key[i];
         sum3 += sum1 - sum2 + len;
         sum2 += (sum1 + 1) * key[len - i - 1] - i * len + sum3 * (1 - i);
+        sum1 ^= sum2;
+        sum2 ^= sum3;
     }
-    return (sum1 - sum2) % size;
+    return (sum1 + sum2) % size;
 }
 
 static struct ht_pair* ht_private_createPair(char* key, void* value) {
