@@ -1,4 +1,4 @@
-#include "../headers/dynarr2.h"
+#include "../headers/dynarr.h"
 
 #define SHIFT(n) (1 << n)
 
@@ -15,7 +15,7 @@ typedef struct {
 
 static size_t narrays = 0;
 static dynarr_arr** darrays = NULL;
-static void* popBuff = NULL;
+static void* tmpBuff = NULL;
 
 static void dynarr_private_extend(dynarr_arr* arr);
 static void dynarr_private_reduce(dynarr_arr* arr);
@@ -148,6 +148,8 @@ void dynarr_free(void* arr) {
     if(narrays == 1) {
         free(darrays);
         darrays = NULL;
+        free(tmpBuff);
+        tmpBuff = NULL;
         narrays = 0;
         return;
     }
@@ -161,9 +163,9 @@ void dynarr_free(void* arr) {
 
 static void dynarr_private_popBack(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    free(popBuff);
-    popBuff = malloc(arr->byteSize);
-    memcpy(popBuff, arr->arr + (arr->size - 1) * arr->byteSize, arr->byteSize);
+    free(tmpBuff);
+    tmpBuff = malloc(arr->byteSize);
+    memcpy(tmpBuff, arr->arr + (arr->size - 1) * arr->byteSize, arr->byteSize);
     arr->size--;
     dynarr_private_reduce(arr);
 }
@@ -175,14 +177,14 @@ void* dynarr_popBack(void* arrAdd) {
     if(darrays[i - 1]->size == 0) return NULL;
     dynarr_private_popBack(darrays[i - 1]);
     *(void**)arrAdd = darrays[i - 1]->arr;
-    return popBuff;
+    return tmpBuff;
 }
 
 static void dynarr_private_popFront(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    free(popBuff);
-    popBuff = malloc(arr->byteSize);
-    memcpy(popBuff,arr->arr,arr->byteSize);
+    free(tmpBuff);
+    tmpBuff = malloc(arr->byteSize);
+    memcpy(tmpBuff,arr->arr,arr->byteSize);
     arr->size--;
     arr->offset++;
     arr->arr = arr->baseArr + (arr->offset * arr->byteSize);
@@ -196,7 +198,11 @@ void* dynarr_popFront(void* arrAdd) {
     if(darrays[i - 1]->size == 0) return NULL;
     dynarr_private_popFront(darrays[i - 1]);
     *(void**)arrAdd = darrays[i - 1]->arr;
-    return popBuff;
+    return tmpBuff;
+}
+
+void* dynarr_lastDelElem() {
+    return tmpBuff;
 }
 
 

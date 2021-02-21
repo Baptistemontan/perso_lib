@@ -12,7 +12,7 @@
 #include "hashtable.h"
 #include "tree.h"
 #include "chainedlist.h"
-#include "dynarr2.h"
+#include "dynarr.h"
 #include "misc.h"
 // #include "graph.h"
 
