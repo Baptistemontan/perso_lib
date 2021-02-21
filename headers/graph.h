@@ -19,7 +19,7 @@
 
 typedef struct graph_node
 {
-    dynarr_arr* edges;
+    graph_edge** edges;
     bool visited;
     void* value;
     double distance;
@@ -87,7 +87,7 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
 // return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
+graph_edge** graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the adjency matrice say
