@@ -115,7 +115,6 @@ static void dynarr_private_pushFront(dynarr_arr* arr, void* value) {
         arr->offset--;
         arr->arr = arr->baseArr + arr->offset;
         arr->size++;
-        SORT();
         memcpy(arr->arr,value, arr->byteSize);
     } else {
         dynarr_private_extend(arr);
