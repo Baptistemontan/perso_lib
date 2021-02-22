@@ -14,7 +14,7 @@ typedef struct {
 } dynarr_arr;
 
 static size_t narrays = 0;
-static dynarr_arr** darrays = NULL;
+static dynarr_arr* darrays = NULL;
 static void* tmpBuff = NULL;
 
 static void dynarr_private_extend(dynarr_arr* arr);
@@ -22,8 +22,8 @@ static void dynarr_private_reduce(dynarr_arr* arr);
 static void dynarr_private_pushBack(dynarr_arr* arr, void* value);
 
 static int dynarr_private_comp_sort(const void* a, const void* b) {
-    const dynarr_arr* da = *(dynarr_arr**)a;
-    const dynarr_arr* db = *(dynarr_arr**)b;
+    const dynarr_arr* da = a;
+    const dynarr_arr* db = b;
     return (da->baseArr > db->baseArr) - (da->baseArr < db->baseArr);
 }
 
@@ -32,35 +32,28 @@ static size_t dynarr_private_findArr(void* arr) {
     size_t a = 0, b = narrays, mid;
     while(a < b) {
         mid = (a + b) >> 1;
-        if(darrays[mid]->arr == arr) return mid + 1;
-        if(darrays[mid]->arr > arr) b = mid;
+        if(darrays[mid].arr == arr) return mid + 1;
+        if(darrays[mid].arr > arr) b = mid;
         else a = mid;
     }
     return 0;
 }
 
-static dynarr_arr* dynarr_private_init(size_t byteSize) {
-    dynarr_arr* arr = malloc(sizeof(dynarr_arr));
+static void dynarr_private_init(size_t byteSize, dynarr_arr* arr) {
     arr->baseSize = 0;
     arr->size = arr->offset = 0;
     arr->byteSize = byteSize;
     arr->baseArr = arr->arr = malloc(byteSize);
-    return arr;
-}
-
-static void dynarr_private_free(dynarr_arr* arr) {
-    free(arr->baseArr);
-    free(arr);
 }
 
 void* dynarr_create(size_t byteSize, size_t size, void* value) {
     if(byteSize == 0) return NULL;
-    dynarr_arr* darr = dynarr_private_init(byteSize);
-    dynarr_arr** tmp = malloc(sizeof(dynarr_arr*) * (narrays + 1));
-    memcpy(tmp, darrays, sizeof(dynarr_arr*) * narrays);
+    dynarr_arr* tmp = malloc(sizeof(dynarr_arr) * (narrays + 1));
+    memcpy(tmp, darrays, sizeof(dynarr_arr) * narrays);
     free(darrays);
     darrays = tmp;
-    darrays[narrays] = darr;
+    dynarr_arr* darr = darrays + narrays;
+    dynarr_private_init(byteSize, darr);
     narrays++;
     for(size_t i = 0; i < size; i++) {
         dynarr_private_pushBack(darr, value);
@@ -105,8 +98,8 @@ void* dynarr_pushBack(void* arrAdd, void* value) {
     if(value == NULL || arrAdd == NULL) return value;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
     if(i == 0) return value;
-    dynarr_private_pushBack(darrays[i - 1], value);
-    *(void**)arrAdd = darrays[i - 1]->arr;
+    dynarr_private_pushBack(darrays + i - 1, value);
+    *(void**)arrAdd = darrays[i - 1].arr;
     return value;
 }
 
@@ -128,22 +121,22 @@ void* dynarr_pushFront(void* arrAdd, void* value) {
     if(value == NULL || arrAdd == NULL) return value;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
     if(i == 0) return value;
-    dynarr_private_pushFront(darrays[i - 1], value);
-    *(void**)arrAdd = darrays[i - 1]->arr;
+    dynarr_private_pushFront(darrays + i - 1, value);
+    *(void**)arrAdd = darrays[i - 1].arr;
     return value;
 }
 
 size_t dynarr_size(void* arr) {
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return 0;
-    return darrays[i - 1]->size;
+    return darrays[i - 1].size;
 }
 
 void dynarr_free(void* arr) {
     if(arr == NULL) return;
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return;
-    dynarr_private_free(darrays[i - 1]);
+    free(darrays[i - 1].baseArr);
     if(narrays == 1) {
         free(darrays);
         darrays = NULL;
@@ -152,9 +145,9 @@ void dynarr_free(void* arr) {
         narrays = 0;
         return;
     }
-    dynarr_arr** tmp = malloc(sizeof(dynarr_arr*) * (narrays - 1));
-    memcpy(tmp, darrays, i * sizeof(dynarr_arr*));
-    memcpy(tmp, darrays + i + 1, (narrays - i) * sizeof(dynarr_arr*));
+    dynarr_arr* tmp = malloc(sizeof(dynarr_arr) * (narrays - 1));
+    memcpy(tmp, darrays, i * sizeof(dynarr_arr));
+    memcpy(tmp, darrays + i + 1, (narrays - i) * sizeof(dynarr_arr));
     free(darrays);
     darrays = tmp;
     narrays--;
@@ -173,9 +166,9 @@ void* dynarr_popBack(void* arrAdd) {
     if(arrAdd == NULL) return NULL;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
     if(i == 0) return NULL;
-    if(darrays[i - 1]->size == 0) return NULL;
-    dynarr_private_popBack(darrays[i - 1]);
-    *(void**)arrAdd = darrays[i - 1]->arr;
+    if(darrays[i - 1].size == 0) return NULL;
+    dynarr_private_popBack(darrays + i - 1);
+    *(void**)arrAdd = darrays[i - 1].arr;
     return tmpBuff;
 }
 
@@ -194,9 +187,9 @@ void* dynarr_popFront(void* arrAdd) {
     if(arrAdd == NULL) return NULL;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
     if(i == 0) return NULL;
-    if(darrays[i - 1]->size == 0) return NULL;
-    dynarr_private_popFront(darrays[i - 1]);
-    *(void**)arrAdd = darrays[i - 1]->arr;
+    if(darrays[i - 1].size == 0) return NULL;
+    dynarr_private_popFront(darrays + i - 1);
+    *(void**)arrAdd = darrays[i - 1].arr;
     return tmpBuff;
 }
 
