@@ -2,7 +2,7 @@
 
 #define SHIFT(n) (1 << n)
 
-#define SORT() qsort(darrays, narrays, sizeof(dynarr_arr*), dynarr_private_comp_sort)
+#define SORT() qsort(darrays, narrays, sizeof(dynarr_arr), dynarr_private_comp_sort)
 
 typedef struct {
     void* arr;
