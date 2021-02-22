@@ -24,7 +24,7 @@ static void dynarr_private_pushBack(dynarr_arr* arr, void* value);
 static int dynarr_private_comp_sort(const void* a, const void* b) {
     const dynarr_arr* da = *(dynarr_arr**)a;
     const dynarr_arr* db = *(dynarr_arr**)b;
-    return (da->arr > db->arr) - (da->arr < db->arr);
+    return (da->baseArr > db->baseArr) - (da->baseArr < db->baseArr);
 }
 
 static size_t dynarr_private_findArr(void* arr) {
