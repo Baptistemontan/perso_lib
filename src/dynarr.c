@@ -1,21 +1,28 @@
 #include "../headers/dynarr.h"
 
-#define SHIFT(n) (1 << n)
+#define SHIFT(n) (1 << n) // fast 2^n
 
 #define SORT() qsort(darrays, narrays, sizeof(dynarr_arr), dynarr_private_comp_sort)
+#define SAVEBUFF(src, byteSize) free(tmpBuff); tmpBuff = malloc(byteSize); memcpy(tmpBuff,src,byteSize);
 
 typedef struct {
+    // technically arr is useless, with bytesize, offset and baseArr we can calculate it
+    // but for code simplification, we can sacrifice 8 bytes per array
     void* arr;
-    void* baseArr;
-    size_t baseSize;
-    size_t size;
-    size_t offset;
-    size_t byteSize;
+    void* baseArr; // adress of the allocated array
+    size_t baseSize; // log2 of the allocated size for the array
+    size_t size; // number of elem in arr
+    size_t offset; // discarded element beetween baseAr and arr
+    size_t byteSize; // size of 1 element
 } dynarr_arr;
 
+// number of arrays
 static size_t narrays = 0;
+// array of the arrays infos
 static dynarr_arr* darrays = NULL;
+// temp buff for pop functions
 static void* tmpBuff = NULL;
+
 
 static void dynarr_private_extend(dynarr_arr* arr);
 static void dynarr_private_reduce(dynarr_arr* arr);
@@ -155,9 +162,7 @@ void dynarr_free(void* arr) {
 
 static void dynarr_private_popBack(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    free(tmpBuff);
-    tmpBuff = malloc(arr->byteSize);
-    memcpy(tmpBuff, arr->arr + (arr->size - 1) * arr->byteSize, arr->byteSize);
+    SAVEBUFF(arr->arr + (arr->size - 1) * arr->byteSize, arr->byteSize);
     arr->size--;
     dynarr_private_reduce(arr);
 }
@@ -174,9 +179,7 @@ void* dynarr_popBack(void* arrAdd) {
 
 static void dynarr_private_popFront(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    free(tmpBuff);
-    tmpBuff = malloc(arr->byteSize);
-    memcpy(tmpBuff,arr->arr,arr->byteSize);
+    SAVEBUFF(arr->arr, arr->byteSize);
     arr->size--;
     arr->offset++;
     arr->arr = arr->baseArr + (arr->offset * arr->byteSize);
