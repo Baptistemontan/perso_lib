@@ -1,7 +1,7 @@
 #include "../headers/graph.h"
 
 
-#define UNVISIT(visited) for(size_t i = dynarr_size(visited) - 1; i >= 0; i--){graph_private_reset(visited[i]);}; dynarr_free(visited)
+#define UNVISIT(visited) for(size_t i = dynarr_size(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 
 graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
     graph_edge* edge = malloc(sizeof(graph_edge));
@@ -28,8 +28,8 @@ graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
 
 void* graph_freeNode(graph_node* node) {
     void* tmp = node->value;
-    for(uint i = dynarr_size(node->edges) - 1; i >= 0; i--) {
-        free(node->edges[i]);
+    for(size_t i = dynarr_size(node->edges); i > 0; i--) {
+        free(node->edges[i - 1]);
     }
     dynarr_free(node->edges);
     free(node);
@@ -48,8 +48,8 @@ static void graph_private_freeGraph(graph_node* node, graph_node*** queue) {
     node->visited = true;
     dynarr_pushBack(queue, &node);
     graph_edge* edge = NULL;
-    for(size_t i = dynarr_size(node->edges) - 1; i >= 0; i--) {
-        graph_private_freeGraph(node->edges[i]->dest, queue);
+    for(size_t i = dynarr_size(node->edges); i > 0; i--) {
+        graph_private_freeGraph(node->edges[i - 1]->dest, queue);
     }
 }
 
@@ -57,23 +57,24 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
     graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
     graph_private_freeGraph(node, &queue);
     graph_node* currentNode = NULL;
-    for(size_t i = dynarr_size(queue) - 1; i >= 0; i--) {
-        if(free_fn != NULL) free_fn(queue[i]->value);
-        graph_freeNode(queue[i]);
+    for(size_t i = dynarr_size(queue); i > 0; i--) {
+        if(free_fn != NULL) free_fn(queue[i - 1]->value);
+        graph_freeNode(queue[i - 1]);
     }
     dynarr_free(queue);
 }
 
+inline
+void graph_addEdge(graph_node* node, graph_edge* edge) {
+    dynarr_pushBack(&node->edges, &edge);
+}
+
 void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges) {
     for(size_t i = 0; i < nb_edges; i++) {
-        dynarr_pushBack(&node->edges, edges + i);
+        graph_addEdge(node, edges[i]);
     }
 }
 
-inline
-void graph_addEdge(graph_node* node, graph_edge* edge) {
-    graph_addNEdges(node, 1, &edge);
-}
 
 static void graph_private_addVisited(graph_node*** visited, graph_node* node) {
     if(node == NULL || node->visited) return;
