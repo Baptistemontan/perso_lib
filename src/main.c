@@ -2,20 +2,111 @@
 
 #define SIZE 5
 
+void* print_uint(void* num, void* args) {
+    printf("%u\n",*(uint*)num);
+    return NULL;
+}
+
+typedef struct {
+    size_t src,dest;
+    double weight;
+} Link;
+
+
+double*** createAdjMat(Link** links, size_t nnode) {
+    double*** mat = malloc(sizeof(double**) * nnode);
+    for(size_t i = 0; i < nnode; i++) {
+        mat[i] = malloc(sizeof(double*) * nnode);
+        for(size_t j = 0; j < nnode; j++) {
+            mat[i][j] = NULL;
+        }
+    }
+    Link* linkInfo = NULL;
+    for(size_t i = dynarr_size(links); i > 0 ; i--) {
+        linkInfo = links[i - 1];
+        mat[linkInfo->src][linkInfo->dest] = misc_createdouble(linkInfo->weight, misc_printErr);
+    }
+    return mat;
+}
+
+Link* createLink(size_t src, size_t dest, double weight) {
+    Link* linkInfo = malloc(sizeof(Link));
+    linkInfo->src = src;
+    linkInfo->dest = dest;
+    linkInfo->weight = weight;
+    return linkInfo;
+}
+
+void freeAdjMat(size_t nnode, double*** adjencyMat) {
+    for(size_t i = 0; i < nnode; i++) {
+        for(size_t j = 0; j < nnode; j++) {
+            free(adjencyMat[i][j]);
+        }
+        free(adjencyMat[i]);
+    }
+    free(adjencyMat);
+}
+
+
 int main(int argc, char const *argv[])
 {
-    uint* test = DYNARR_INIT(sizeof(uint));
-    uint i = 34;
-    for(uint j = 0; j < SIZE; j++) {
-        i += j;
-        printf("%u\n",*(uint*)dynarr_pushBack(&test, &i));
+
+
+    // values creation
+    void* values[SIZE];
+    for(uint i = 0; i < SIZE; i++) {
+        values[i] = misc_createuint(i + 1, misc_printErr);
     }
+
+
+    printf("links creation\n");
+
+    // adjency mat creation
+    Link** links = DYNARR_INIT(sizeof(Link*));
+    Link* buff = NULL;
+    buff = createLink(0,1,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(1,0,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(1,2,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(2,0,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(2,4,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(3,0,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(3,4,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(4,2,0);
+    dynarr_pushBack(&links, &buff);
+    buff = createLink(4,3,0);
+    dynarr_pushBack(&links, &buff);
+
+    printf("adjMat creation\n");
+    double*** adjMat = createAdjMat(links, SIZE);
+
+    printf("graph construction\n");
+    // graph creation
+    graph_node** graph = graph_constructAdjency(SIZE, values, adjMat);
+
+
+    // // graph traversal
+    graph_node* node = graph[2];
+    printf("DFS:\n");
+    graph_DFS(node, print_uint, NULL);
     printf("\n");
-    while (dynarr_size(test))
-    {
-        printf("%u\n",*(uint*)dynarr_popFront(&test));
+    printf("BFS:\n");
+    graph_BFS(node, print_uint, NULL);
+
+    printf("free\n");
+    // free allocated mem
+    for(size_t i = dynarr_size(links); i > 0; i--) {
+        free(links[i - 1]);
     }
+    dynarr_free(links);
+    freeAdjMat(SIZE, adjMat);
+    graph_freeGraph(node, free);
     
-    dynarr_free(test);
-    return EXIT_SUCCESS;
+    return 0;
 }
