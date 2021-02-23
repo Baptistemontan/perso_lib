@@ -27,6 +27,7 @@ graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
 }
 
 void* graph_freeNode(graph_node* node) {
+    if(node == NULL) return NULL;
     void* tmp = node->value;
     for(size_t i = dynarr_size(node->edges); i > 0; i--) {
         free(node->edges[i - 1]);
