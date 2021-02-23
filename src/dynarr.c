@@ -7,7 +7,7 @@
 
 typedef struct {
     // technically arr is useless, with bytesize, offset and baseArr we can calculate it
-    // but for code simplification, we can sacrifice 8 bytes per array
+    // but for code simplification and speed, we can sacrifice 8 bytes per array
     void* arr;
     void* baseArr; // adress of the allocated array
     size_t baseSize; // log2 of the allocated size for the array
@@ -19,14 +19,11 @@ typedef struct {
 static dynarr_arr* dynarr_private_init(size_t byteSize);
 static void dynarr_private_popBack(dynarr_arr* arr);
 
-// // number of arrays
-// static size_t narrays = 0;
-// // array of the arrays infos
-// static dynarr_arr** darrays = NULL;
 // temp buff for pop functions
 static void* tmpBuff = NULL;
-
+// info on the arr of arr info
 static dynarr_arr* darray_info = NULL;
+// arr of info arr
 static dynarr_arr** darray = NULL;
 
 
