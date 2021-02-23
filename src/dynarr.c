@@ -1,7 +1,6 @@
 #include "../headers/dynarr.h"
 
 #define SHIFT(n) (1 << n) // fast 2^n
-
 #define SORT() qsort(darray_info->arr, darray_info->size, sizeof(dynarr_arr*), dynarr_private_comp_sort)
 #define SAVEBUFF(src, byteSize) free(tmpBuff); tmpBuff = malloc(byteSize); memcpy(tmpBuff,src,byteSize);
 
@@ -162,9 +161,15 @@ void dynarr_free(void* arr) {
     tmp = *(dynarr_arr**)tmpBuff;
     free(tmp->baseArr);
     free(tmp);
+    SORT();
     if(darray_info->size == 0) {
         free(tmpBuff);
         tmpBuff = NULL;
+        free(darray_info->baseArr);
+        free(darray_info);
+        darray_info = NULL;
+        darray = NULL;
+        // printf("no more bitch\n");
     }
 }
 
@@ -216,11 +221,3 @@ void dynarr_qsort(void* arr, __compar_fn_t compar) {
     if(i == 0) return;
     qsort(arr,darray[i - 1]->size, darray[i - 1]->byteSize, compar);
 }
-
-
-
-
-
-
-
-
