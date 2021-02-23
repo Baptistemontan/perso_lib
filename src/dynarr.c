@@ -36,10 +36,6 @@ static int dynarr_private_comp_sort(const void* a, const void* b) {
 
 static size_t dynarr_private_findArr(void* arr) {
     if(arr == NULL) return 0;
-    // for(uint i = 0; i < narrays; i++) {
-    //     printf("%p\n",darrays[i]->arr);
-    // }
-    // printf("r = %p\n", arr);
     size_t a = 0, b = narrays - 1, mid;
     while(a <= b && b < narrays) {
         mid = (a + b) >> 1;
@@ -50,7 +46,6 @@ static size_t dynarr_private_findArr(void* arr) {
             a = mid + 1;
         }
     }
-    printf("erf\n");
     return 0;
 }
 
@@ -72,12 +67,8 @@ void* dynarr_create(size_t byteSize, size_t size, void* valuePtr) {
     free(darrays);
     darrays = tmp;
     dynarr_arr* darr = dynarr_private_init(byteSize);
-    // size_t i = dynarr_private_findArr(darr->arr);
-    // if(i != 0) printf("hoho\n");
     darrays[narrays] = darr;
     narrays++;
-    // printf("create\n");
-    // dynarr_private_findArr(darr->arr);
     for(size_t i = 0; i < size; i++) {
         dynarr_private_pushBack(darr, valuePtr);
     }
@@ -160,7 +151,6 @@ size_t dynarr_size(void* arr) {
 
 void dynarr_free(void* arr) {
     if(arr == NULL) return;
-    // printf("%lu\n",narrays);
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return;
     free(darrays[i - 1]->baseArr);
@@ -171,22 +161,14 @@ void dynarr_free(void* arr) {
         free(tmpBuff);
         tmpBuff = NULL;
         narrays = 0;
-        printf("all gone\n");
         return;
     }
     dynarr_arr** tmp = malloc(sizeof(dynarr_arr*) * (narrays - 1));
-    // for(size_t j = 0; j < i - 1; j++) {
-    //     tmp[j] = darrays[j];
-    // }
-    // for(size_t j = i; j < narrays; j++) {
-    //     tmp[j - 1] = darrays[j];
-    // }
     memcpy(tmp, darrays, (i - 1) * sizeof(dynarr_arr*));
     memcpy(tmp + i - 1, darrays + i, (narrays - i) * sizeof(dynarr_arr*));
     free(darrays);
     darrays = tmp;
     narrays--;
-    // dynarr_private_findArr(arr);
 }
 
 static void dynarr_private_popBack(dynarr_arr* arr) {
