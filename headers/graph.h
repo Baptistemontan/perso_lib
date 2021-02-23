@@ -19,7 +19,7 @@
 
 typedef struct graph_node
 {
-    graph_edge** edges;
+    struct graph_edge** edges;
     bool visited;
     void* value;
     double distance;

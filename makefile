@@ -20,8 +20,8 @@ EXEC = exec
 CC = gcc
 CFLAGS = -O3 #Option d'optimisation du programme
 FLAGS = -lm -lpthread
-SRC= $(CFOL)/main.c $(CFOL)/hashtable.c $(CFOL)/tree.c $(CFOL)/dynarr.c $(CFOL)/chainedlist.c $(CFOL)/misc.c #$(CFOL)/graph.c
-OBJ= $(FOL)/main.o $(FOL)/hashtable.o $(FOL)/tree.o $(FOL)/dynarr.o $(FOL)/chainedlist.o $(FOL)/misc.o #$(FOL)/graph.o
+SRC= $(CFOL)/main.c $(CFOL)/hashtable.c $(CFOL)/tree.c $(CFOL)/dynarr.c $(CFOL)/chainedlist.c $(CFOL)/misc.c $(CFOL)/graph.c
+OBJ= $(FOL)/main.o $(FOL)/hashtable.o $(FOL)/tree.o $(FOL)/dynarr.o $(FOL)/chainedlist.o $(FOL)/misc.o $(FOL)/graph.o
 
 
 all : $(FOL) $(FOL)/$(EXEC)

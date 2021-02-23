@@ -1,10 +1,9 @@
 #include "../headers/graph.h"
 
 static void* graph_private_DFS(graph_node* node, void** args);
-static void* graph_private_reset(void* node, size_t index, size_t offset, void* args);
 
 
-#define UNVISIT(visited) dynarr_forEach(visited, graph_private_reset, NULL), dynarr_free(visited, NULL)
+#define UNVISIT(visited) while(dynarr_size(visited)){graph_private_reset(*(graph_node**)dynarr_popBack(&visited));}; dynarr_free(visited)
 
 enum {
     ARGS_FN = 0,
@@ -25,9 +24,9 @@ graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
 
 graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
     graph_node* node = malloc(sizeof(graph_node));
-    node->edges = DYNARR_INIT;
+    node->edges = DYNARR_INIT(sizeof(graph_edge*));
     for(size_t i = 0; i < nb_edges; i++) {
-        dynarr_push(node->edges, edges[i]);
+        dynarr_pushBack(&node->edges, edges + i);
     }
     node->value = value;
     node->visited = false;
@@ -39,29 +38,39 @@ graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
 
 void* graph_freeNode(graph_node* node) {
     void* tmp = node->value;
-    dynarr_free(node->edges, free);
+    for(uint i = dynarr_size(node->edges) - 1; i >= 0; i--) {
+        free(node->edges[i]);
+    }
+    dynarr_free(node->edges);
     free(node);
     return tmp;
 }
 
-static void graph_private_freeGraph(graph_node* node, dynarr_arr* queue) {
+static void graph_private_reset(graph_node* node) {
+    node->pathEdge = NULL;
+    node->distance = 0;
+    node->visited = false;
+    node->pathEdge = NULL;
+}
+
+static void graph_private_freeGraph(graph_node* node, graph_node*** queue) {
     if(node == NULL || node->visited) return;
     node->visited = true;
-    dynarr_push(queue, node);
+    dynarr_pushBack(queue, &node);
     graph_edge* edge = NULL;
-    while(dynarr_getSize(node->edges)) {
-        edge = dynarr_pop(node->edges);
+    while(dynarr_size(node->edges)) {
+        edge = *(graph_edge**)dynarr_popBack(node->edges);
         graph_private_freeGraph(edge->dest, queue);
         free(edge);
     }
 }
 
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
-    dynarr_arr* queue = DYNARR_INIT;
-    graph_private_freeGraph(node, queue);
+    graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
+    graph_private_freeGraph(node, &queue);
     graph_node* currentNode = NULL;
-    while(dynarr_getSize(queue) > 0) {
-        currentNode = dynarr_pop(queue);
+    while(dynarr_size(queue) > 0) {
+        currentNode = *(graph_node**)dynarr_popBack(queue);
         if(free_fn != NULL) free_fn(currentNode->value);
         graph_freeNode(currentNode);
     }
@@ -69,7 +78,7 @@ void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
 
 void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges) {
     for(size_t i = 0; i < nb_edges; i++) {
-        dynarr_push(node->edges, edges[i]);
+        dynarr_pushBack(&node->edges, edges + i);
     }
 }
 
@@ -77,83 +86,76 @@ inline void graph_addEdge(graph_node* node, graph_edge* edge) {
     graph_addNEdges(node, 1, &edge);
 }
 
-static void graph_private_addVisited(dynarr_arr* visited, graph_node* node) {
+static void graph_private_addVisited(graph_node*** visited, graph_node* node) {
     if(node == NULL || node->visited) return;
     node->visited = true;
-    dynarr_push(visited, node);
+    dynarr_pushBack(visited, &node);
 }
 
-static void* graph_private_DFS_some(void* edge, size_t index, size_t offset, void* args) {
-    return graph_private_DFS(((graph_edge*)edge)->dest, args);
-}
+// static void* graph_private_DFS_some(void* edge, size_t index, size_t offset, void* args) {
+//     return graph_private_DFS(((graph_edge*)edge)->dest, args);
+// }
 
-static void* graph_private_DFS(graph_node* node, void** args) {
-    if(node == NULL || node->visited) return NULL;
-    graph_private_addVisited(args[ARGS_VISITED], node);
-    void* test = dynarr_some(node->edges, graph_private_DFS_some, args);
-    if(test != NULL) return test;
-    void* (*todo_fn)(void*, void*) = args[ARGS_FN];
-    return todo_fn(node->value, args[ARGS_ARGS]);
-}
+// static void* graph_private_DFS(graph_node* node, void** args) {
+//     if(node == NULL || node->visited) return NULL;
+//     graph_private_addVisited(args[ARGS_VISITED], node);
+//     void* test = dynarr_some(node->edges, graph_private_DFS_some, args);
+//     if(test != NULL) return test;
+//     void* (*todo_fn)(void*, void*) = args[ARGS_FN];
+//     return todo_fn(node->value, args[ARGS_ARGS]);
+// }
 
-void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
-    if(node == NULL) return NULL;
-    dynarr_arr* visited = DYNARR_INIT;
-    void* _args[ARGS_SIZE];
-    _args[ARGS_FN] = todo_fn;
-    _args[ARGS_ARGS] = args;
-    _args[ARGS_VISITED] = visited;
-    void* tmp = graph_private_DFS(node, _args);
-    UNVISIT(visited);
-    return tmp;
-}
+// void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
+//     if(node == NULL) return NULL;
+//     graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+//     void* _args[ARGS_SIZE];
+//     _args[ARGS_FN] = todo_fn;
+//     _args[ARGS_ARGS] = args;
+//     _args[ARGS_VISITED] = &visited;
+//     void* tmp = graph_private_DFS(node, _args);
+//     UNVISIT(visited);
+//     return tmp;
+// }
 
-static void* graph_private_BFS_addUnvisited(void* _edge, size_t index, size_t offset, void* args) {
-    graph_edge* edge = _edge;
-    if(edge->dest->visited == false) {
-        dynarr_push(((void**)args)[ARGS_QUEUE], edge->dest);
-        graph_private_addVisited(((void**)args)[ARGS_VISITED], edge->dest);
-    }
-    return NULL;
-}
+// static void* graph_private_BFS_addUnvisited(void* _edge, size_t index, size_t offset, void* args) {
+//     graph_edge* edge = _edge;
+//     if(edge->dest->visited == false) {
+//         dynarr_pushBack(((void**)args)[ARGS_QUEUE], &edge->dest);
+//         graph_private_addVisited(((void**)args)[ARGS_VISITED], edge->dest);
+//     }
+//     return NULL;
+// }
 
-static void* graph_private_BFS(dynarr_arr* queue, void** args) {
-    graph_node* currentNode = NULL;
-    void* test = NULL;
-    graph_todo_fn todo_fn = args[ARGS_FN];
-    while(dynarr_getSize(queue)) {
-        currentNode = dynarr_popFront(queue);
-        test = todo_fn(currentNode->value, args[ARGS_ARGS]);
-        if(test != NULL) return test;
-        dynarr_forEach(currentNode->edges, graph_private_BFS_addUnvisited, args);
-    }
-    return NULL;
-}
+// static void* graph_private_BFS(graph_node*** queue, void** args) {
+//     graph_node* currentNode = NULL;
+//     void* test = NULL;
+//     graph_todo_fn todo_fn = args[ARGS_FN];
+//     while(dynarr_size(*queue)) {
+//         currentNode = *(graph_node**)dynarr_popFront(queue);
+//         test = todo_fn(currentNode->value, args[ARGS_ARGS]);
+//         if(test != NULL) return test;
+//         dynarr_forEach(currentNode->edges, graph_private_BFS_addUnvisited, args);
+//     }
+//     return NULL;
+// }
 
-void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
-    if(node == NULL) return NULL;
-    dynarr_arr* queue = DYNARR_INIT;
-    dynarr_arr* visited = DYNARR_INIT;
-    node->visited = true;
-    dynarr_push(visited, node);
-    dynarr_push(queue, node);
-    void* _args[ARGS_SIZE];
-    _args[ARGS_FN] = todo_fn;
-    _args[ARGS_ARGS] = args;
-    _args[ARGS_VISITED] = visited;
-    _args[ARGS_QUEUE] = queue;
-    void* tmp = graph_private_BFS(queue, _args);
-    UNVISIT(visited);
-    return tmp;
-}
+// void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
+//     if(node == NULL) return NULL;
+//     graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
+//     graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+//     node->visited = true;
+//     dynarr_pushBack(&visited, &node);
+//     dynarr_pushBack(&queue, &node);
+//     void* _args[ARGS_SIZE];
+//     _args[ARGS_FN] = todo_fn;
+//     _args[ARGS_ARGS] = args;
+//     _args[ARGS_VISITED] = &visited;
+//     _args[ARGS_QUEUE] = &queue;
+//     void* tmp = graph_private_BFS(&queue, _args);
+//     UNVISIT(visited);
+//     return tmp;
+// }
 
-static void* graph_private_reset(void* node, size_t index, size_t offset, void* args) {
-    ((graph_node*)node)->pathEdge = NULL;
-    ((graph_node*)node)->distance = 0;
-    ((graph_node*)node)->visited = false;
-    ((graph_node*)node)->pathEdge = NULL;
-    return NULL;
-}
 
 static int graph_private_sortDistWeighted(const void* a, const void* b) {
     const graph_node* ia = a;
@@ -169,61 +171,57 @@ static int graph_private_sortDistUnweighted(const void* a, const void* b) {
     return (ia->heuristic > ib->heuristic) - (ia->heuristic < ib->heuristic);
 }
 
-static void* graph_private_Astar_visitNeighbours(void* _edge, size_t index, size_t offset, void* _args) {
-    void** args = _args;
-    graph_edge* edge = _edge;
+static void* graph_private_Astar_visitNeighbours(graph_edge* edge, graph_heuristic_fn heuristic_fn, graph_node*** visited, graph_node*** queue, void* goalInfo) {
     graph_node* parent = edge->src;
     if(parent->distance + edge->weight < edge->dest->distance) {
         edge->dest->pathEdge = edge;
         edge->dest->distance = parent->distance + edge->weight;
     }
     if(edge->dest->visited == false){
-        dynarr_push(args[ARGS_QUEUE], edge->dest);
-        graph_private_addVisited(args[ARGS_VISITED], edge->dest);
-        if(args[ARGS_FN] != NULL) {
-            graph_heuristic_fn heuristic_fn = args[ARGS_FN];
-            edge->dest->heuristic = heuristic_fn(edge->dest->value, args[ARGS_ARGS]);
+        dynarr_pushBack(queue, &edge->dest);
+        graph_private_addVisited(visited, edge->dest);
+        if(heuristic_fn != NULL) {
+            edge->dest->heuristic = heuristic_fn(edge->dest->value, goalInfo);
         }
     } 
     return NULL;
 }
 
-static dynarr_arr* graph_private_Astar(dynarr_arr* queue, graph_isGoal_fn isGoal_fn, void** args, bool weighted) {
+static graph_edge** graph_private_Astar(graph_node*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node*** visited, void* goalInfo, bool weighted) {
     graph_node* currentNode = NULL;
-    while(dynarr_getSize(queue)) {
+    while(dynarr_size(*queue)) {
         currentNode = dynarr_popFront(queue);
-        if(isGoal_fn(currentNode->value, args[ARGS_ARGS])) {
-            dynarr_arr* path = DYNARR_INIT;
+        if(isGoal_fn(currentNode->value, goalInfo)) {
+            graph_edge** path = DYNARR_INIT(sizeof(graph_edge*));
             while(currentNode != NULL) {
-                dynarr_pushFront(path, currentNode->pathEdge);
+                dynarr_pushFront(&path, &currentNode->pathEdge);
                 currentNode = currentNode->pathEdge->src;
             }
             return path;
         }
-        dynarr_forEach(currentNode->edges,graph_private_Astar_visitNeighbours,args);
+        size_t size = dynarr_size(currentNode->edges);
+        for(uint i = 0; i < size; i++) {
+            graph_private_Astar_visitNeighbours(currentNode->edges[i],heuristic_fn,visited,queue,goalInfo);
+        }
         if(weighted) {
             dynarr_qsort(queue, graph_private_sortDistWeighted);
-        } else if(args[ARGS_FN] != NULL) {
+        } else if(heuristic_fn != NULL) {
             dynarr_qsort(queue, graph_private_sortDistUnweighted);
         }
     }
     return NULL;
 }
 
-dynarr_arr* graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
+graph_edge** graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
     if(node == NULL) return NULL;
-    dynarr_arr* queue = DYNARR_INIT;
-    dynarr_arr* visited = DYNARR_INIT;
+    graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
+    graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
     node->visited = true;
-    dynarr_push(visited, node);
-    dynarr_push(queue, node);
-    void* args[ARGS_SIZE];
-    args[ARGS_FN] = heuristic_fn;
-    args[ARGS_ARGS] = goalInfo;
-    args[ARGS_VISITED] = visited;
-    dynarr_arr* tmp = graph_private_Astar(queue, isGoal_fn, args, weighted);
+    dynarr_pushBack(&visited, &node);
+    dynarr_pushBack(&queue, &node);
+    graph_edge** tmp = graph_private_Astar(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
     UNVISIT(visited);
-    dynarr_free(queue, NULL);
+    dynarr_free(queue);
     return tmp;
 }
 
