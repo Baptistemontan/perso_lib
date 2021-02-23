@@ -149,7 +149,7 @@ static int graph_private_sortDistUnweighted(const void* a, const void* b) {
     return (ia->heuristic > ib->heuristic) - (ia->heuristic < ib->heuristic);
 }
 
-static void* graph_private_Astar_visitNeighbours(graph_edge* edge, graph_heuristic_fn heuristic_fn, graph_node*** visited, graph_node*** queue, void* goalInfo) {
+static void* graph_private_findPath_visitNeighbours(graph_edge* edge, graph_heuristic_fn heuristic_fn, graph_node*** visited, graph_node*** queue, void* goalInfo) {
     graph_node* parent = edge->src;
     if(parent->distance + edge->weight < edge->dest->distance) {
         edge->dest->pathEdge = edge;
@@ -165,7 +165,7 @@ static void* graph_private_Astar_visitNeighbours(graph_edge* edge, graph_heurist
     return NULL;
 }
 
-static graph_edge** graph_private_Astar(graph_node*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node*** visited, void* goalInfo, bool weighted) {
+static graph_edge** graph_private_findPath(graph_node*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node*** visited, void* goalInfo, bool weighted) {
     graph_node* currentNode = NULL;
     while(dynarr_size(*queue)) {
         currentNode = dynarr_popFront(queue);
@@ -179,7 +179,7 @@ static graph_edge** graph_private_Astar(graph_node*** queue, graph_isGoal_fn isG
         }
         size_t size = dynarr_size(currentNode->edges);
         for(uint i = 0; i < size; i++) {
-            graph_private_Astar_visitNeighbours(currentNode->edges[i],heuristic_fn,visited,queue,goalInfo);
+            graph_private_findPath_visitNeighbours(currentNode->edges[i],heuristic_fn,visited,queue,goalInfo);
         }
         if(weighted) {
             dynarr_qsort(queue, graph_private_sortDistWeighted);
@@ -190,14 +190,14 @@ static graph_edge** graph_private_Astar(graph_node*** queue, graph_isGoal_fn isG
     return NULL;
 }
 
-graph_edge** graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
+graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
     if(node == NULL) return NULL;
     graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
     graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
     node->visited = true;
     dynarr_pushBack(&visited, &node);
     dynarr_pushBack(&queue, &node);
-    graph_edge** tmp = graph_private_Astar(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
+    graph_edge** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
     UNVISIT(visited);
     dynarr_free(queue);
     graph_edge** tmp2 = malloc(sizeof(graph_edge*) * dynarr_size(tmp));

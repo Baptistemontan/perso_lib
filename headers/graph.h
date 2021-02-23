@@ -79,15 +79,16 @@ void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args);
 // pass the value of all nodes to free_fn if its not NULL
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
 
-// output a dynarr of edges that makes the shortest path from the node to the goal
+// output a arr of edges that makes the shortest path from the node to the goal
 // isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
 // heuristic_fn return the heuristic value of the node with the given value based on the goalInfo
+// make the function behave like A* algo
 // if weighted is false, consider all edges weight to be 0, but still use the heuristic value
-// if heuristic_fn is NULL, this is just a dijkstra algorithm
+// if heuristic_fn is NULL, this is like dijkstra algo
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
 // return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
-graph_edge** graph_Astar(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
+graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the adjency matrice say
