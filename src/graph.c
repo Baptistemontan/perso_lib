@@ -81,30 +81,25 @@ static void graph_private_addVisited(graph_node*** visited, graph_node* node) {
     dynarr_pushBack(visited, &node);
 }
 
-// static void* graph_private_DFS_some(void* edge, size_t index, size_t offset, void* args) {
-//     return graph_private_DFS(((graph_edge*)edge)->dest, args);
-// }
+static void* graph_private_DFS(graph_node* node, graph_node*** visited, graph_todo_fn todo_fn, void* args) {
+    if(node == NULL || node->visited) return NULL;
+    graph_private_addVisited(visited, node);
+    void* test = NULL;
+    size_t size = dynarr_size(node->edges);
+    for(size_t i = 0; i < size; i++) {
+        test = graph_private_DFS(node->edges[i]->dest, visited, todo_fn, args);
+        if(test != NULL) return test;
+    }
+    return todo_fn(node->value, args);
+}
 
-// static void* graph_private_DFS(graph_node* node, void** args) {
-//     if(node == NULL || node->visited) return NULL;
-//     graph_private_addVisited(args[ARGS_VISITED], node);
-//     void* test = dynarr_some(node->edges, graph_private_DFS_some, args);
-//     if(test != NULL) return test;
-//     void* (*todo_fn)(void*, void*) = args[ARGS_FN];
-//     return todo_fn(node->value, args[ARGS_ARGS]);
-// }
-
-// void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
-//     if(node == NULL) return NULL;
-//     graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
-//     void* _args[ARGS_SIZE];
-//     _args[ARGS_FN] = todo_fn;
-//     _args[ARGS_ARGS] = args;
-//     _args[ARGS_VISITED] = &visited;
-//     void* tmp = graph_private_DFS(node, _args);
-//     UNVISIT(visited);
-//     return tmp;
-// }
+void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
+    if(node == NULL) return NULL;
+    graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+    void* tmp = graph_private_DFS(node, &visited, todo_fn, args);
+    UNVISIT(visited);
+    return tmp;
+}
 
 static void graph_private_BFS_addUnvisited(graph_node* node, graph_node*** queue, graph_node*** visited) {
     if(node->visited == true) return;
