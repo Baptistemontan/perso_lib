@@ -200,6 +200,15 @@ void* dynarr_lastDelElem() {
     return tmpBuff;
 }
 
+void dynarr_qsort(void* arr, __compar_fn_t compar) {
+    if(arr == NULL) return;
+    size_t i = dynarr_private_findArr(arr);
+    if(i == 0) return;
+    qsort(arr,darrays[i - 1].size, darrays[i - 1].byteSize, compar);
+}
+
+
+
 
 
 

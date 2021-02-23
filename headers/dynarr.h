@@ -14,6 +14,7 @@ size_t dynarr_size(void* arr);
 void dynarr_free(void* arr);
 void* dynarr_popBack(void* arrAdd);
 void* dynarr_popFront(void* arrAdd);
+void dynarr_qsort(void* arr, __compar_fn_t compar);
 
 
 #endif
