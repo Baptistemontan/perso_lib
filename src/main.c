@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
     printf("links creation\n");
 
     // adjency mat creation
-    Link** links = DYNARR_INIT(sizeof(Link*));
+    Link** links = DYNARR_INIT(Link*);
     Link* buff = NULL;
     buff = createLink(0,1,0);
     dynarr_pushBack(&links, &buff);

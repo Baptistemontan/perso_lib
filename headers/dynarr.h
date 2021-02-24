@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DYNARR_INIT(byteSize) dynarr_create(byteSize, 0, NULL)
+#define DYNARR_INIT(type) dynarr_create(sizeof(type), 0, NULL)
 
 void* dynarr_create(size_t byteSize, size_t size, void* value);
 void* dynarr_pushBack(void* arrAdd, void* value);

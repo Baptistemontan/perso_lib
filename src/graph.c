@@ -14,7 +14,7 @@ graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
 
 graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
     graph_node* node = malloc(sizeof(graph_node));
-    node->edges = DYNARR_INIT(sizeof(graph_edge*));
+    node->edges = DYNARR_INIT(graph_edge*);
     for(size_t i = 0; i < nb_edges; i++) {
         dynarr_pushBack(&node->edges, edges + i);
     }
@@ -55,7 +55,7 @@ static void graph_private_freeGraph(graph_node* node, graph_node*** queue) {
 }
 
 void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
-    graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
+    graph_node** queue = DYNARR_INIT(graph_node*);
     graph_private_freeGraph(node, &queue);
     graph_node* currentNode = NULL;
     for(size_t i = dynarr_size(queue); i > 0; i--) {
@@ -97,7 +97,7 @@ static void* graph_private_DFS(graph_node* node, graph_node*** visited, graph_to
 
 void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
     if(node == NULL) return NULL;
-    graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+    graph_node** visited = DYNARR_INIT(graph_node*);
     void* tmp = graph_private_DFS(node, &visited, todo_fn, args);
     UNVISIT(visited);
     return tmp;
@@ -127,8 +127,8 @@ static void* graph_private_BFS(graph_node*** queue, graph_todo_fn todo_fn, graph
 
 void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args) {
     if(node == NULL) return NULL;
-    graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
-    graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+    graph_node** queue = DYNARR_INIT(graph_node*);
+    graph_node** visited = DYNARR_INIT(graph_node*);
     graph_private_BFS_addUnvisited(node, &queue, &visited);
     void* tmp = graph_private_BFS(&queue, todo_fn, &visited, args);
     UNVISIT(visited);
@@ -172,7 +172,7 @@ static graph_edge** graph_private_findPath(graph_node*** queue, graph_isGoal_fn 
     while(dynarr_size(*queue)) {
         currentNode = dynarr_popFront(queue);
         if(isGoal_fn(currentNode->value, goalInfo)) {
-            graph_edge** path = DYNARR_INIT(sizeof(graph_edge*));
+            graph_edge** path = DYNARR_INIT(graph_edge*);
             while(currentNode != NULL) {
                 dynarr_pushFront(&path, &currentNode->pathEdge);
                 currentNode = currentNode->pathEdge->src;
@@ -194,8 +194,8 @@ static graph_edge** graph_private_findPath(graph_node*** queue, graph_isGoal_fn 
 
 graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
     if(node == NULL) return NULL;
-    graph_node** queue = DYNARR_INIT(sizeof(graph_node*));
-    graph_node** visited = DYNARR_INIT(sizeof(graph_node*));
+    graph_node** queue = DYNARR_INIT(graph_node*);
+    graph_node** visited = DYNARR_INIT(graph_node*);
     node->visited = true;
     dynarr_pushBack(&visited, &node);
     dynarr_pushBack(&queue, &node);
