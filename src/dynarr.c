@@ -60,7 +60,7 @@ static dynarr_arr* dynarr_private_init(size_t byteSize) {
     return arr;
 }
 
-void* dynarr_create(size_t byteSize, size_t size, void* valuePtr) {
+void* dynarr_create(size_t byteSize, size_t size, void* value) {
     if(byteSize == 0) return NULL;
     if(darray_info == NULL) {
         darray_info = dynarr_private_init(sizeof(dynarr_arr*));
@@ -70,7 +70,7 @@ void* dynarr_create(size_t byteSize, size_t size, void* valuePtr) {
     dynarr_private_pushBack(darray_info, &darr);
     darray = darray_info->arr;
     for(size_t i = 0; i < size; i++) {
-        dynarr_private_pushBack(darr, valuePtr);
+        dynarr_private_pushBack(darr, value);
     }
     SORT();
     return darr->arr;
@@ -109,14 +109,14 @@ static void dynarr_private_pushBack(dynarr_arr* arr, void* value) {
     arr->size++;
 }
 
-void* dynarr_pushBack(void* arrAdd, void* valuePtr) {
-    if(valuePtr == NULL || arrAdd == NULL) return valuePtr;
+void* dynarr_pushBack(void* arrAdd, void* value) {
+    if(value == NULL || arrAdd == NULL) return NULL;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
-    if(i == 0) return valuePtr;
+    if(i == 0) return NULL;
     dynarr_arr* tmp = darray[i - 1];
-    dynarr_private_pushBack(tmp, valuePtr);
+    dynarr_private_pushBack(tmp, value);
     *(void**)arrAdd = tmp->arr;
-    return valuePtr;
+    return value;
 }
 
 static void dynarr_private_pushFront(dynarr_arr* arr, void* value) {
@@ -134,16 +134,16 @@ static void dynarr_private_pushFront(dynarr_arr* arr, void* value) {
 }
 
 void* dynarr_pushFront(void* arrAdd, void* value) {
-    if(value == NULL || arrAdd == NULL) return value;
+    if(value == NULL || arrAdd == NULL) return NULL;
     size_t i = dynarr_private_findArr(*(void**)arrAdd);
-    if(i == 0) return value;
+    if(i == 0) return NULL;
     dynarr_arr* tmp = darray[i - 1];
     dynarr_private_pushFront(tmp, value);
     *(void**)arrAdd = tmp->arr;
     return value;
 }
 
-size_t dynarr_size(void* arr) {
+size_t dynarr_getSize(void* arr) {
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return 0;
     return darray[i - 1]->size;

@@ -22,7 +22,7 @@ double*** createAdjMat(Link** links, size_t nnode) {
         }
     }
     Link* linkInfo = NULL;
-    for(size_t i = dynarr_size(links); i > 0 ; i--) {
+    for(size_t i = dynarr_getSize(links); i > 0 ; i--) {
         linkInfo = links[i - 1];
         mat[linkInfo->src][linkInfo->dest] = misc_createdouble(linkInfo->weight, misc_printErr);
     }
@@ -101,7 +101,7 @@ int main(int argc, char const *argv[])
 
     printf("free\n");
     // free allocated mem
-    for(size_t i = dynarr_size(links); i > 0; i--) {
+    for(size_t i = dynarr_getSize(links); i > 0; i--) {
         free(links[i - 1]);
     }
     dynarr_free(links);
