@@ -5,10 +5,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+// simple macro for dynarr creation
+// check dynarr_create explanation for more info
 #define DYNARR_INIT(type) dynarr_create(sizeof(type), 0, NULL)
 
 // return an adress of an array
 // must be free with dynarr_free()
+// byteSize is the size of one elmt like sizeof(int)
+// size is the starting size with default value the value of value_ptr
+// if value_ptr is NULL or size 0, the returned array will be size 0
 void* dynarr_create(size_t byteSize, size_t size, void* value_ptr);
 
 // push the value of the ptr to the back of the given array
