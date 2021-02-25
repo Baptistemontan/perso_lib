@@ -162,7 +162,6 @@ void dynarr_free(void* arr) {
         free(darray_info);
         darray_info = NULL;
         darray = NULL;
-        printf("no more bitch\n");
     } else {
         memmove(darray + i - 1, darray + i, darray_info->byteSize * (darray_info->size - i));
         darray_info->size--;
