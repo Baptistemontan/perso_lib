@@ -153,14 +153,9 @@ void dynarr_free(void* arr) {
     if(arr == NULL) return;
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return;
-    dynarr_arr* tmp = darray[i - 1];
-    memmove(darray + i - 1, darray + i, darray_info->byteSize * (darray_info->size - i));
-    darray_info->size--;
-    dynarr_private_reduce(darray_info);
-    darray = darray_info->arr;
-    free(tmp->baseArr);
-    free(tmp);
-    if(darray_info->size == 0) {
+    free(darray[i - 1]->baseArr);
+    free(darray[i - 1]);
+    if(darray_info->size == 1) {
         free(tmpBuff);
         tmpBuff = NULL;
         free(darray_info->baseArr);
@@ -168,6 +163,11 @@ void dynarr_free(void* arr) {
         darray_info = NULL;
         darray = NULL;
         // printf("no more bitch\n");
+    } else {
+        memmove(darray + i - 1, darray + i, darray_info->byteSize * (darray_info->size - i));
+        darray_info->size--;
+        dynarr_private_reduce(darray_info);
+        darray = darray_info->arr;
     }
 }
 
