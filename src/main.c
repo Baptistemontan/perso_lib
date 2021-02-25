@@ -107,6 +107,21 @@ int main(int argc, char const *argv[])
     dynarr_free(links);
     freeAdjMat(SIZE, adjMat);
     graph_freeGraph(node, free);
-    
+
+    int* arr = DYNARR_INIT(int);
+    int a;
+    for(size_t i = 0; i < SIZE; i++) {
+        a = i + 2;
+        dynarr_pushBack(&arr, &a);
+        a = SIZE + i;
+        dynarr_pushFront(&arr, &a);
+    }
+    for(size_t i = 0; i < dynarr_getSize(arr); i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+    dynarr_free(arr);
+
+
     return 0;
 }
