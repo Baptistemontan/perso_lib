@@ -59,8 +59,6 @@ int main(int argc, char const *argv[])
     }
 
 
-    printf("links creation\n");
-
     // adjency mat creation
     Link** links = DYNARR_INIT(Link*);
     Link* buff = NULL;
@@ -82,11 +80,7 @@ int main(int argc, char const *argv[])
     dynarr_pushBack(&links, &buff);
     buff = createLink(4,3,0);
     dynarr_pushBack(&links, &buff);
-
-    printf("adjMat creation\n");
     double*** adjMat = createAdjMat(links, SIZE);
-
-    printf("graph construction\n");
     // graph creation
     graph_node** graph = graph_constructAdjency(SIZE, values, adjMat);
 
@@ -98,8 +92,7 @@ int main(int argc, char const *argv[])
     printf("\n");
     printf("BFS:\n");
     graph_BFS(node, print_uint, NULL);
-
-    printf("free\n");
+    printf("\n");
     // free allocated mem
     for(size_t i = dynarr_getSize(links); i > 0; i--) {
         free(links[i - 1]);
