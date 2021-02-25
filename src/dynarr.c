@@ -1,5 +1,4 @@
 #include "../headers/dynarr.h"
-#include <assert.h>
 
 #define SHIFT(n) (1 << n) // fast 2^n
 #define SORT() qsort(darray_info->arr, darray_info->size, sizeof(dynarr_arr*), dynarr_private_comp_sort)
@@ -37,13 +36,13 @@ static int dynarr_private_comp_sort(const void* a, const void* b) {
     return (da->baseArr > db->baseArr) - (da->baseArr < db->baseArr);
 }
 
-static size_t dynarr_private_findArr(void* arr_fa) {
-    assert(arr_fa == NULL);
+static size_t dynarr_private_findArr(void* arr) {
+    if(arr == NULL) return 0;
     size_t a = 0, b = darray_info->size - 1, mid;
     while(a <= b && b < darray_info->size) {
         mid = (a + b) >> 1;
-        if(darray[mid]->arr == arr_fa) return mid + 1;
-        if(darray[mid]->arr > arr_fa) {
+        if(darray[mid]->arr == arr) return mid + 1;
+        if(darray[mid]->arr > arr) {
             b = mid - 1;
         } else {
             a = mid + 1;
@@ -155,14 +154,12 @@ void dynarr_free(void* arr) {
     size_t i = dynarr_private_findArr(arr);
     if(i == 0) return;
     dynarr_arr* tmp = darray[i - 1];
-    darray[i - 1] = darray[darray_info->size - 1];
-    darray[darray_info->size - 1] = tmp;
-    dynarr_private_popBack(darray_info);
+    memmove(darray + i - 1, darray + i, darray_info->byteSize * (darray_info->size - i));
+    darray_info->size--;
+    dynarr_private_reduce(darray_info);
     darray = darray_info->arr;
-    tmp = *(dynarr_arr**)tmpBuff;
     free(tmp->baseArr);
     free(tmp);
-    SORT();
     if(darray_info->size == 0) {
         free(tmpBuff);
         tmpBuff = NULL;
@@ -170,14 +167,15 @@ void dynarr_free(void* arr) {
         free(darray_info);
         darray_info = NULL;
         darray = NULL;
+        // printf("no more bitch\n");
     }
 }
 
-static void dynarr_private_popBack(dynarr_arr* arr_pb) {
-    assert(arr_pb->size == 0);
-    SAVEBUFF(arr_pb->arr + (arr_pb->size - 1) * arr_pb->byteSize, arr_pb->byteSize);
-    arr_pb->size--;
-    dynarr_private_reduce(arr_pb);
+static void dynarr_private_popBack(dynarr_arr* arr) {
+    if(arr->size == 0) return;
+    SAVEBUFF(arr->arr + (arr->size - 1) * arr->byteSize, arr->byteSize);
+    arr->size--;
+    dynarr_private_reduce(arr);
 }
 
 void* dynarr_popBack(void* arrAdd) {
@@ -191,13 +189,13 @@ void* dynarr_popBack(void* arrAdd) {
     return tmpBuff;
 }
 
-static void dynarr_private_popFront(dynarr_arr* arr_pf) {
-    assert(arr_pf->size == 0);
-    SAVEBUFF(arr_pf->arr, arr_pf->byteSize);
-    arr_pf->size--;
-    arr_pf->offset++;
-    arr_pf->arr = arr_pf->baseArr + (arr_pf->offset * arr_pf->byteSize);
-    dynarr_private_reduce(arr_pf);
+static void dynarr_private_popFront(dynarr_arr* arr) {
+    if(arr->size == 0) return;
+    SAVEBUFF(arr->arr, arr->byteSize);
+    arr->size--;
+    arr->offset++;
+    arr->arr = arr->baseArr + (arr->offset * arr->byteSize);
+    dynarr_private_reduce(arr);
 }
 
 void* dynarr_popFront(void* arrAdd) {
