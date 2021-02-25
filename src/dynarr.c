@@ -122,13 +122,13 @@ void* dynarr_pushBack(void* arrAdd, void* value) {
 static void dynarr_private_pushFront(dynarr_arr* arr, void* value) {
     if(arr->offset > 0) {
         arr->offset--;
-        arr->arr = arr->baseArr + arr->offset;
+        arr->arr = arr->baseArr + arr->offset * arr->byteSize;
         arr->size++;
         memcpy(arr->arr,value, arr->byteSize);
     } else {
         dynarr_private_extend(arr);
         arr->offset = SHIFT(arr->baseSize) - arr->size;
-        memmove(arr->baseArr + arr->offset,arr->baseArr,arr->size * arr->byteSize);
+        memmove(arr->baseArr + arr->offset * arr->byteSize, arr->baseArr, arr->size * arr->byteSize);
         dynarr_private_pushFront(arr,value);
     }
 }
@@ -162,7 +162,7 @@ void dynarr_free(void* arr) {
         free(darray_info);
         darray_info = NULL;
         darray = NULL;
-        // printf("no more bitch\n");
+        printf("no more bitch\n");
     } else {
         memmove(darray + i - 1, darray + i, darray_info->byteSize * (darray_info->size - i));
         darray_info->size--;
