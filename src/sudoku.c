@@ -61,6 +61,7 @@ int main(int argc, char const *argv[])
 
     
     printMat(mat);
+    free(mat);
 
     return EXIT_SUCCESS;
 }
