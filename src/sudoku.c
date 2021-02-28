@@ -51,7 +51,7 @@ int solve(uint (*mat)[SIZE], uint ind) {
 
 int main(int argc, char const *argv[])
 {
-    uint (*mat)[SIZE] = malloc(sizeof(uint) * SIZE * SIZE);
+    uint mat[SIZE][SIZE];
 
     FILE* f = fopen(ASSETS"/sudoku.txt","r");
     remp(f, mat);
@@ -61,7 +61,6 @@ int main(int argc, char const *argv[])
 
     
     printMat(mat);
-    free(mat);
 
     return EXIT_SUCCESS;
 }
