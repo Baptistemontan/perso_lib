@@ -16,6 +16,8 @@
 #include "misc.h"
 #include "graph.h"
 
+#define ASSETS "./assets"
+
 
 
 #endif

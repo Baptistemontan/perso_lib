@@ -17,9 +17,10 @@
 FOL = build
 CFOL = src
 EXEC = exec
+sudoku = sudoku
 CC = gcc
 CFLAGS = -O3 #Option d'optimisation du programme
-FLAGS = -lm -lpthread
+FLAGS = -lm -lpthread -Wall
 SRC= $(CFOL)/main.c $(CFOL)/hashtable.c $(CFOL)/tree.c $(CFOL)/dynarr.c $(CFOL)/chainedlist.c $(CFOL)/misc.c $(CFOL)/graph.c
 OBJ= $(FOL)/main.o $(FOL)/hashtable.o $(FOL)/tree.o $(FOL)/dynarr.o $(FOL)/chainedlist.o $(FOL)/misc.o $(FOL)/graph.o
 
@@ -39,3 +40,8 @@ $(FOL) :
 rmproper :
 	rm -r $(FOL)
 
+sudoku: $(FOL) $(FOL)/$(sudoku)
+	./$(FOL)/$(sudoku)
+
+$(FOL)/$(sudoku) : $(CFOL)/$(sudoku).c
+	$(CC) -o $@ $^ $(FLAGS)
