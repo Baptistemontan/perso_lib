@@ -46,7 +46,7 @@ int solve(uint (*mat)[SIZE], uint ind) {
     }
     mat[a][b] = 0;
     return 0;
-}
+} 
 
 
 int main(int argc, char const *argv[])
