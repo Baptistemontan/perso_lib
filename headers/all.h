@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include "hashtable.h"
 #include "tree.h"
