@@ -120,6 +120,7 @@ void ht_print(ht_htable* table) {
     printf("--------------------------------\n");
 }
 
+// WIP
 void ht_save(ht_htable* table, char* path, ht_write_fn write_fn) {
     const size_t len = strlen(path);
     char newPath[len + 4];
@@ -143,6 +144,7 @@ void ht_save(ht_htable* table, char* path, ht_write_fn write_fn) {
     fclose(savefile);
 }
 
+// WIP
 void ht_load(ht_htable* table, char* path, ht_load_fn load_fn) {
     const size_t len = strlen(path);
     char newPath[len + 4];
@@ -155,7 +157,7 @@ void ht_load(ht_htable* table, char* path, ht_load_fn load_fn) {
     }
     char buff[SIZEBUFF];
     char key[MAXKEYSIZE];
-    struct ht_pair* pair;
+    // struct ht_pair* pair;
     while(fscanf(savefile,"%s:%s:",key,buff) != EOF) {
         ht_setPair(table,key,load_fn(key,buff));
     }
