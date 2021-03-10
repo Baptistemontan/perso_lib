@@ -7,15 +7,11 @@
 #include <stdbool.h>
 #include <math.h>
 
-// create a node with no edge
-// must be free with graph_freeNode()
-#define graph_createEmptyNode(value) graph_createNode(value, 0, NULL)
-
 // create an edge from src to dest and add it to the src node
 #define graph_link(src, dest, weight) graph_addEdge(src, graph_createEdge(src,dest,weight))
 
 // create a bidirectionnal link beetween a and b
-#define graph_linkBi(a, weight, b) graph_link(a,b,weight), graph_link(b,a,weight)
+#define graph_linkBoth(a, b, weight) (graph_link(a,b,weight), graph_link(b,a,weight))
 
 typedef struct graph_node
 {
@@ -57,13 +53,10 @@ graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight);
 // create a node with the given value and set of edges
 // nb_edges can be set to 0 and edges to NULL
 // must be free with graph_freeNode()
-graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges);
+graph_node* graph_createNode(void* value);
 
 // free a node and return its value
 void* graph_freeNode(graph_node* node);
-
-// add nb_edges of edges to the given node
-void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges);
 
 // add the given edge to the given node
 void graph_addEdge(graph_node* node, graph_edge* edge);

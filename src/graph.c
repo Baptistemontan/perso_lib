@@ -12,12 +12,9 @@ graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
     return edge;
 }
 
-graph_node* graph_createNode(void* value, size_t nb_edges, graph_edge** edges) {
+graph_node* graph_createNode(void* value) {
     graph_node* node = malloc(sizeof(graph_node));
     node->edges = DYNARR_INIT(graph_edge*);
-    for(size_t i = 0; i < nb_edges; i++) {
-        dynarr_pushBack(&node->edges, edges + i);
-    }
     node->value = value;
     node->visited = false;
     node->distance = 0;
@@ -74,17 +71,9 @@ void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*))
     }
 }
 
-inline
 void graph_addEdge(graph_node* node, graph_edge* edge) {
     dynarr_pushBack(&node->edges, &edge);
 }
-
-void graph_addNEdges(graph_node* node, size_t nb_edges, graph_edge** edges) {
-    for(size_t i = 0; i < nb_edges; i++) {
-        graph_addEdge(node, edges[i]);
-    }
-}
-
 
 static void graph_private_addVisited(graph_node*** visited, graph_node* node) {
     if(node == NULL || node->visited) return;
@@ -217,7 +206,7 @@ graph_node** graph_constructAdjencyMat(size_t nvalues, void** values, double (*a
     if(nvalues == 0) return NULL;
     graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
-        nodes[i] = graph_createEmptyNode(values[i]);
+        nodes[i] = graph_createNode(values[i]);
     }
     for(size_t i = 0; i < nvalues; i++) {
         for(size_t j = 0; j < nvalues; j++) {
@@ -232,7 +221,7 @@ graph_node** graph_constructAdjencyList(size_t nvalues, void** values, size_t nl
     if(nvalues == 0) return NULL;
     graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
-        nodes[i] = graph_createEmptyNode(values[i]);
+        nodes[i] = graph_createNode(values[i]);
     }
     size_t dest, src;
     double weight = 0;
