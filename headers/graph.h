@@ -13,24 +13,24 @@
 // create a bidirectionnal link beetween a and b
 #define graph_linkBoth(a, b, weight) (graph_link(a,b,weight), graph_link(b,a,weight))
 
-typedef struct graph_node
+typedef struct graph_node_t
 {
-    struct graph_edge** edges;
+    struct graph_edge_t** edges;
     bool visited;
     void* value;
     double distance;
     double heuristic;
-    struct graph_edge* pathEdge;
-} graph_node;
+    struct graph_edge_t* pathEdge;
+} graph_node_t;
 
-typedef struct graph_edge
+typedef struct graph_edge_t
 {
 
     double weight;
-    graph_node* src;
-    graph_node* dest;
+    graph_node_t* src;
+    graph_node_t* dest;
 
-} graph_edge;
+} graph_edge_t;
 
 typedef struct {
     size_t src, dest;
@@ -48,34 +48,34 @@ typedef bool (*graph_isGoal_fn)(void* value, void* goalInfo);
 
 // create an edge with the given src, dest and weight
 // must be free with free()
-graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight);
+graph_edge_t* graph_createEdge(graph_node_t* src, graph_node_t* dest, double weight);
 
 // create a node with the given value and set of edges
 // nb_edges can be set to 0 and edges to NULL
 // must be free with graph_freeNode()
-graph_node* graph_createNode(void* value);
+graph_node_t* graph_createNode(void* value);
 
 // free a node and return its value
-void* graph_freeNode(graph_node* node);
+void* graph_freeNode(graph_node_t* node);
 
 // add the given edge to the given node
-void graph_addEdge(graph_node* node, graph_edge* edge);
+void graph_addEdge(graph_node_t* node, graph_edge_t* edge);
 
 // execute a DFS from the given node
 // stop and return the first non NULL value returned by todo_fn
 // if todo_fn don't return a non NULL value when all node are visited, return NULL
 // args is passed as the second param of todo_fn
-void* graph_DFS(graph_node* node, graph_todo_fn todo_fn, void* args);
+void* graph_DFS(graph_node_t* node, graph_todo_fn todo_fn, void* args);
 
 // execute a BFS from the given node
 // stop and return the first non NULL value returned by todo_fn
 // if todo_fn don't return a non NULL value when all node are visited, return NULL
 // args is passed as the second param of todo_fn
-void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args);
+void* graph_BFS(graph_node_t* node, graph_todo_fn todo_fn, void* args);
 
 // do a DFS on the given node and free all the reachable nodes and their edges
 // pass the value of all nodes to free_fn if its not NULL
-void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*));
+void graph_freeGraph(size_t nvalues, graph_node_t** graph, void (*free_fn)(void*));
 
 // output a malloced array of edges that makes the shortest path from the node to the goal
 // isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
@@ -86,7 +86,7 @@ void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*))
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
 // return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
-graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
+graph_edge_t** graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
 
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the adjency matrice say
@@ -97,11 +97,11 @@ graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn is
 // the distance from values[a] to values[b] is adjencyMat[a][b]
 // and the distance from values[b] to values[a] is adjencyMat[b][a];
 // return NULL is nvalues == 0
-graph_node** graph_constructAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
+graph_node_t** graph_constructAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
 
 
 
-graph_node** graph_constructAdjencyList(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
+graph_node_t** graph_constructAdjencyList(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
 
 
 #endif

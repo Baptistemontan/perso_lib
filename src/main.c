@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
         {.src = 1, .dest = 4},
         {.src = 4, .dest = 0}
     };
-    graph_node** graph = graph_constructAdjencyList(NVALUES, values, NLINKS, links, 0);
+    graph_node_t** graph = graph_constructAdjencyList(NVALUES, values, NLINKS, links, 0);
 
     graph_DFS(graph[1], printInt, NULL);
 
