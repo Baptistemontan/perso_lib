@@ -96,9 +96,8 @@ static void* graph_private_DFS(graph_node* node, graph_node*** visited, graph_to
     if(node == NULL || node->visited) return NULL;
     graph_private_addVisited(visited, node);
     void* test = NULL;
-    size_t size = dynarr_getSize(node->edges);
-    for(size_t i = 0; i < size; i++) {
-        test = graph_private_DFS(node->edges[i]->dest, visited, todo_fn, args);
+    for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
+        test = graph_private_DFS(node->edges[i - 1]->dest, visited, todo_fn, args);
         if(test != NULL) return test;
     }
     return todo_fn(node->value, args);
@@ -121,14 +120,12 @@ static void graph_private_BFS_addUnvisited(graph_node* node, graph_node*** queue
 static void* graph_private_BFS(graph_node*** queue, graph_todo_fn todo_fn, graph_node*** visited, void* args) {
     graph_node* currentNode = NULL;
     void* test = NULL;
-    size_t size;
     while(dynarr_getSize(*queue)) {
         currentNode = *(graph_node**)dynarr_popFront(queue);
         test = todo_fn(currentNode->value, args);
         if(test != NULL) return test;
-        size = dynarr_getSize(currentNode->edges);
-        for(size_t i = 0; i < size; i++) {
-            graph_private_BFS_addUnvisited(currentNode->edges[i]->dest,queue,visited);
+        for(size_t i = dynarr_getSize(currentNode->edges); i > 0; i--) {
+            graph_private_BFS_addUnvisited(currentNode->edges[i - 1]->dest,queue,visited);
         }
     }
     return NULL;
@@ -188,9 +185,8 @@ static graph_edge** graph_private_findPath(graph_node*** queue, graph_isGoal_fn 
             }
             return path;
         }
-        size_t size = dynarr_getSize(currentNode->edges);
-        for(uint i = 0; i < size; i++) {
-            graph_private_findPath_visitNeighbours(currentNode->edges[i],heuristic_fn,visited,queue,goalInfo);
+        for(size_t i = dynarr_getSize(currentNode->edges); i > 0; i--) {
+            graph_private_findPath_visitNeighbours(currentNode->edges[i - 1], heuristic_fn, visited, queue, goalInfo);
         }
         if(weighted) {
             dynarr_qsort(queue, graph_private_sortDistWeighted);
