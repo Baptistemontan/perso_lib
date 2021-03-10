@@ -216,7 +216,7 @@ graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn is
     return tmp2;
 }
 
-graph_node** graph_constructAdjencyMat(size_t nvalues, void* values[nvalues], double adjencyMat[nvalues][nvalues]) {
+graph_node** graph_constructAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]) {
     if(nvalues == 0) return NULL;
     graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
@@ -231,7 +231,7 @@ graph_node** graph_constructAdjencyMat(size_t nvalues, void* values[nvalues], do
     return nodes;
 }
 
-graph_node** graph_constructAdjencyList(size_t nvalues, void* values[nvalues], size_t nlinks, graph_link_t links[nlinks], bool weighted) {
+graph_node** graph_constructAdjencyList(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted) {
     if(nvalues == 0) return NULL;
     graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {

@@ -85,7 +85,7 @@ void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args);
 // pass the value of all nodes to free_fn if its not NULL
 void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*));
 
-// output a arr of edges that makes the shortest path from the node to the goal
+// output a malloced array of edges that makes the shortest path from the node to the goal
 // isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
 // heuristic_fn return the heuristic value of the node with the given value based on the goalInfo
 // make the function behave like A* algo
@@ -105,9 +105,11 @@ graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn is
 // the distance from values[a] to values[b] is adjencyMat[a][b]
 // and the distance from values[b] to values[a] is adjencyMat[b][a];
 // return NULL is nvalues == 0
-graph_node** graph_constructAdjencyMat(size_t nvalues, void* values[nvalues], double adjencyMat[nvalues][nvalues]);
+graph_node** graph_constructAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
 
-graph_node** graph_constructAdjencyList(size_t nvalues, void* values[nvalues], size_t nlinks, graph_link_t links[nlinks], bool weighted);
+
+
+graph_node** graph_constructAdjencyList(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
 
 
 #endif

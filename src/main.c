@@ -4,7 +4,7 @@
 #define NLINKS 5
 
 void* printInt(void* a, void* args) {
-    printf("%d\n",*(int*)a);
+    printf("%d\n", *(int*)a);
     return NULL;
 }
 
@@ -32,16 +32,21 @@ int main(int argc, char const *argv[])
     printf("\n");
 
     double adjMat[NVALUES][NVALUES] = {
-        {NAN, NAN, NAN, NAN, NAN},
-        {NAN, NAN,   0, NAN,   0},
-        {NAN, NAN, NAN,   0, NAN},
-        {NAN, NAN,   0, NAN, NAN},
-        {  0, NAN, NAN, NAN, NAN}
+        {NAN, NAN, NAN, NAN, NAN}, // 0 -> .
+        {NAN, NAN,   0, NAN,   0}, // 1 -> 2, 4
+        {NAN, NAN, NAN,   0, NAN}, // 2 -> 3
+        {NAN, NAN,   0, NAN, NAN}, // 3 -> 2
+        {  0, NAN, NAN, NAN, NAN}  // 4 -> 0
     };
 
     graph = graph_constructAdjencyMat(NVALUES, values, adjMat);
 
     graph_DFS(graph[1], printInt, NULL);
+
+    intVal[0] = 17;
+    printf("\n");
+
+    graph_BFS(graph[1], printInt, NULL);
 
     graph_freeGraph(NVALUES, graph, NULL);
 
