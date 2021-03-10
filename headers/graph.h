@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 #include "../headers/dynarr.h"
 
 // create a node with no edge
@@ -35,6 +36,11 @@ typedef struct graph_edge
     graph_node* dest;
 
 } graph_edge;
+
+typedef struct {
+    size_t src, dest;
+    double weight;
+} graph_link_t;
 
 
 typedef void* (*graph_todo_fn)(void* value, void* args);
@@ -77,7 +83,7 @@ void* graph_BFS(graph_node* node, graph_todo_fn todo_fn, void* args);
 
 // do a DFS on the given node and free all the reachable nodes and their edges
 // pass the value of all nodes to free_fn if its not NULL
-void graph_freeGraph(graph_node* node, void (*free_fn)(void*));
+void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*));
 
 // output a arr of edges that makes the shortest path from the node to the goal
 // isGoal_fn takes a node value and return true if its the goal based on the given goalInfo
@@ -93,13 +99,15 @@ graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn is
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the adjency matrice say
 // adjencyMat must be has follow:
-// adjencyMat[a][b] is a double adress of the weight of the edge from a to b
-// if adjencyMat[a][b] is NULL their is no edge
+// adjencyMat[a][b] is the weight of the edge from a to b
+// if adjencyMat[a][b] is NaN their is no edge
 // exemple: their is n values, consider 0 <= a,b < n 
 // the distance from values[a] to values[b] is adjencyMat[a][b]
 // and the distance from values[b] to values[a] is adjencyMat[b][a];
 // return NULL is nvalues == 0
-graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adjencyMat);
+graph_node** graph_constructAdjencyMat(size_t nvalues, void* values[nvalues], double adjencyMat[nvalues][nvalues]);
+
+graph_node** graph_constructAdjencyList(size_t nvalues, void* values[nvalues], size_t nlinks, graph_link_t links[nlinks], bool weighted);
 
 
 #endif

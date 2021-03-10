@@ -1,6 +1,5 @@
 #include "../headers/graph.h"
 
-
 #define UNVISIT(visited) for(size_t i = dynarr_getSize(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 
 graph_edge* graph_createEdge(graph_node* src, graph_node* dest, double weight) {
@@ -44,25 +43,34 @@ static void graph_private_reset(graph_node* node) {
     node->pathEdge = NULL;
 }
 
-static void graph_private_freeGraph(graph_node* node, graph_node*** queue) {
-    if(node == NULL || node->visited) return;
-    node->visited = true;
-    dynarr_pushBack(queue, &node);
-    graph_edge* edge = NULL;
-    for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
-        graph_private_freeGraph(node->edges[i - 1]->dest, queue);
-    }
+// static void graph_private_freeGraph(graph_node* node, graph_node*** queue) {
+//     if(node == NULL || node->visited) return;
+//     node->visited = true;
+//     dynarr_pushBack(queue, &node);
+//     for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
+//         graph_private_freeGraph(node->edges[i - 1]->dest, queue);
+//     }
+// }
+
+// void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
+//     graph_node** queue = DYNARR_INIT(graph_node*);
+//     graph_private_freeGraph(node, &queue);
+//     for(size_t i = dynarr_getSize(queue); i > 0; i--) {
+//         if(free_fn != NULL) free_fn(queue[i - 1]->value);
+//         graph_freeNode(queue[i - 1]);
+//     }
+//     dynarr_free(queue);
+// }
+
+static void graph_private_dummyFree(void* ptr) {
+    return;
 }
 
-void graph_freeGraph(graph_node* node, void (*free_fn)(void*)) {
-    graph_node** queue = DYNARR_INIT(graph_node*);
-    graph_private_freeGraph(node, &queue);
-    graph_node* currentNode = NULL;
-    for(size_t i = dynarr_getSize(queue); i > 0; i--) {
-        if(free_fn != NULL) free_fn(queue[i - 1]->value);
-        graph_freeNode(queue[i - 1]);
+void graph_freeGraph(size_t nvalues, graph_node** graph, void (*free_fn)(void*)){
+    if(free_fn == NULL) free_fn = graph_private_dummyFree;
+    for(size_t i = 0; i < nvalues; i++) {
+        free_fn(graph_freeNode(graph[i]));
     }
-    dynarr_free(queue);
 }
 
 inline
@@ -208,7 +216,7 @@ graph_edge** graph_findPath(graph_node* node, void* goalInfo, graph_isGoal_fn is
     return tmp2;
 }
 
-graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adjencyMat) {
+graph_node** graph_constructAdjencyMat(size_t nvalues, void* values[nvalues], double adjencyMat[nvalues][nvalues]) {
     if(nvalues == 0) return NULL;
     graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
@@ -216,9 +224,27 @@ graph_node** graph_constructAdjency(size_t nvalues, void** values, double*** adj
     }
     for(size_t i = 0; i < nvalues; i++) {
         for(size_t j = 0; j < nvalues; j++) {
-            if(adjencyMat[i][j] != NULL) {
-                graph_link(nodes[i], nodes[j], *(adjencyMat[i][j]));
-            }
+            if(isnan(adjencyMat[i][j])) continue;
+            graph_link(nodes[i], nodes[j], adjencyMat[i][j]);
+        }
+    }
+    return nodes;
+}
+
+graph_node** graph_constructAdjencyList(size_t nvalues, void* values[nvalues], size_t nlinks, graph_link_t links[nlinks], bool weighted) {
+    if(nvalues == 0) return NULL;
+    graph_node** nodes = malloc(sizeof(graph_node*) * nvalues);
+    for(size_t i = 0; i < nvalues; i++) {
+        nodes[i] = graph_createEmptyNode(values[i]);
+    }
+    size_t dest, src;
+    double weight = 0;
+    for(size_t i = 0; i < nlinks; i++) {
+        if(weighted) weight = links[i].weight;
+        src = links[i].src;
+        dest = links[i].dest;
+        if(src >= 0 && src < nvalues && dest >= 0 && dest < nvalues) {
+            graph_link(nodes[src], nodes[dest], weight);
         }
     }
     return nodes;
