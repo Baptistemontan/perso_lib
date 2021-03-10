@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
-#include "../headers/dynarr.h"
 
 // create a node with no edge
 // must be free with graph_freeNode()

@@ -1,4 +1,5 @@
 #include "../headers/graph.h"
+#include "../headers/dynarr.h"
 
 #define UNVISIT(visited) for(size_t i = dynarr_getSize(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 
