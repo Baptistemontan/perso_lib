@@ -97,11 +97,13 @@ graph_edge_t** graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_f
 // the distance from values[a] to values[b] is adjencyMat[a][b]
 // and the distance from values[b] to values[a] is adjencyMat[b][a];
 // return NULL is nvalues == 0
-graph_node_t** graph_constructAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
+graph_node_t** graph_constructFromAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
 
 
-
-graph_node_t** graph_constructAdjencyList(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
+// return an array of nvalues nodes where nodes[k] has the value values[k]
+// all nodes are linked together has the links array say
+// return NULL is nvalues == 0
+graph_node_t** graph_constructFromLinksArr(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
 
 
 #endif
