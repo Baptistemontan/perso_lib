@@ -20,6 +20,13 @@ node_t (*createNodes(size_t size))[] {
     return nodes;
 }
 
+double heuristic(void* value, void* goal_) {
+    node_t *current = value, *goal = goal_;
+    uint a = (goal->x > current->x ? goal->x - current->x : current->x - goal->x);
+    uint b = (goal->y > current->y ? goal->y - current->y : current->y - goal->y);
+    return (a + b) * 2;
+}
+
 
 bool checkGoal(void *value, void* args) {
     return value == args;
@@ -51,14 +58,30 @@ int main(int argc, char const *argv[])
 
     graph_node_t* graph = graph_constructFromAdjencyMat(SIZE * SIZE, values, adjencyMat);
     size_t size;
-    node_t** path = graph_findPath(graph + START, values[END], checkGoal, NULL, false, &size);
+    node_t** path = NULL;
+
+    printf("\nDijkstra :\n");
+
+    path = graph_findPath(graph + START, values[END], checkGoal, NULL, true, &size);
 
     printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
     for(size_t i = 0; i < size; i++) {
         printf("%u %u\n", path[i]->x, path[i]->y);
     }
-
     free(path);
+
+
+    printf("\nA* :\n");
+
+    path = graph_findPath(graph + START, values[END], checkGoal, heuristic, true, &size);
+
+    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
+    for(size_t i = 0; i < size; i++) {
+        printf("%u %u\n", path[i]->x, path[i]->y);
+    }
+    free(path);
+
+
     graph_freeGraph(SIZE * SIZE, graph, NULL);
     free(nodes);
 

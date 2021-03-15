@@ -5,10 +5,6 @@
 #include "../headers/graph.h"
 #include "../headers/dynarr.h"
 
-typedef struct {
-    uint x, y;
-} node_t;
-
 
 #define UNVISIT(visited) for(size_t i = dynarr_getSize(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 #define MALLOCCHECK(val, callback) if(val == NULL) {fprintf(stderr,"Failed to allocate memory"); callback;}
@@ -45,6 +41,7 @@ static void graph_private_reset(graph_node_t* node) {
     node->parent = NULL;
     node->distance = 0;
     node->visited = false;
+    node->heuristic = 0;
 }
 
 static void graph_private_dummyFree(void* ptr) {
@@ -121,16 +118,16 @@ void* graph_BFS(graph_node_t* node, graph_todo_fn todo_fn, void* args) {
 
 
 static int graph_private_sortDistWeighted(const void* a, const void* b) {
-    const graph_node_t* ia = a;
-    const graph_node_t* ib = b;
+    const graph_node_t* ia = *(graph_node_t**)a;
+    const graph_node_t* ib = *(graph_node_t**)b;
     const double da = ia->distance + ia->heuristic;
     const double db = ib->distance + ib->heuristic;
     return (da > db) - (da < db);
 }
 
 static int graph_private_sortDistUnweighted(const void* a, const void* b) {
-    const graph_node_t* ia = a;
-    const graph_node_t* ib = b;
+    const graph_node_t* ia = *(graph_node_t**)a;
+    const graph_node_t* ib = *(graph_node_t**)b;
     return (ia->heuristic > ib->heuristic) - (ia->heuristic < ib->heuristic);
 }
 
@@ -164,9 +161,9 @@ static void* graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoa
             graph_private_findPath_visitNeighbours(currentNode->edges[i - 1], heuristic_fn, visited, queue, goalInfo);
         }
         if(weighted) {
-            dynarr_qsort(queue, graph_private_sortDistWeighted);
+            dynarr_qsort(*queue, graph_private_sortDistWeighted);
         } else if(heuristic_fn != NULL) {
-            dynarr_qsort(queue, graph_private_sortDistUnweighted);
+            dynarr_qsort(*queue, graph_private_sortDistUnweighted);
         }
     }
     return NULL;
@@ -182,6 +179,13 @@ void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_
     dynarr_pushBack(&visited, &node);
     dynarr_pushBack(&queue, &node);
     void** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
+
+
+    size_t vsize = dynarr_getSize(visited);
+    printf("visited : %lu\n", vsize);
+
+
+
     UNVISIT(visited);
     dynarr_free(queue);
     *size = dynarr_getSize(tmp);
