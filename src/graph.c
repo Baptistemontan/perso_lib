@@ -170,8 +170,7 @@ static void* graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoa
 }
 
 void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted, size_t* size) {
-    *size = 0;
-    if(node == NULL) return NULL;
+    if(node == NULL || isGoal_fn == NULL) return NULL;
     node->parent = STARTNODE;
     graph_node_t** queue = DYNARR_INIT(graph_node_t*);
     graph_node_t** visited = DYNARR_INIT(graph_node_t*);
@@ -188,9 +187,10 @@ void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_
 
     UNVISIT(visited);
     dynarr_free(queue);
-    *size = dynarr_getSize(tmp);
-    MALLOC2(void**, tmp2, *size * sizeof(void*), return NULL);
-    memcpy(tmp2, tmp, *size * sizeof(void*));
+    size_t size_ = dynarr_getSize(tmp);
+    MALLOC2(void**, tmp2, size_ * sizeof(void*), return NULL);
+    memcpy(tmp2, tmp, size_ * sizeof(void*));
+    if(size == NULL) *size = size_;
     dynarr_free(tmp);
     return tmp2;
 }
