@@ -39,7 +39,6 @@ static void graph_private_reset(graph_node_t* node) {
     node->pathEdge = NULL;
     node->distance = 0;
     node->visited = false;
-    node->pathEdge = NULL;
 }
 
 static void graph_private_dummyFree(void* ptr) {
