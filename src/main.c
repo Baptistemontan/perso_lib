@@ -23,9 +23,9 @@ int main(int argc, char const *argv[])
         {.src = 1, .dest = 4},
         {.src = 4, .dest = 0}
     };
-    graph_node_t** graph = graph_constructFromLinksArr(NVALUES, values, NLINKS, links, 0);
+    graph_node_t* graph = graph_constructFromLinksArr(NVALUES, values, NLINKS, links, 0);
 
-    graph_DFS(graph[1], printInt, NULL);
+    graph_DFS(graph + 1, printInt, NULL);
 
     graph_freeGraph(NVALUES, graph, NULL);
 
@@ -41,12 +41,12 @@ int main(int argc, char const *argv[])
 
     graph = graph_constructFromAdjencyMat(NVALUES, values, adjMat);
 
-    graph_DFS(graph[1], printInt, NULL);
+    graph_DFS(graph + 1, printInt, NULL);
 
     intVal[0] = 17;
     printf("\n");
 
-    graph_BFS(graph[1], printInt, NULL);
+    graph_BFS(graph + 1, printInt, NULL);
 
     graph_freeGraph(NVALUES, graph, NULL);
 

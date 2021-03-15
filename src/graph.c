@@ -16,26 +16,22 @@ graph_edge_t* graph_createEdge(graph_node_t* src, graph_node_t* dest, double wei
     return edge;
 }
 
-graph_node_t* graph_createNode(void* value) {
-    graph_node_t* node = malloc(sizeof(graph_node_t));
+void graph_initNode(graph_node_t* node, void* value) {
     node->edges = DYNARR_INIT(graph_edge_t*);
     node->value = value;
     node->visited = false;
     node->distance = 0;
     node->pathEdge = NULL;
     node->heuristic = 0;
-    return node;
 }
 
 void* graph_freeNode(graph_node_t* node) {
     if(node == NULL) return NULL;
-    void* tmp = node->value;
     for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
         free(node->edges[i - 1]);
     }
     dynarr_free(node->edges);
-    free(node);
-    return tmp;
+    return node->value;
 }
 
 static void graph_private_reset(graph_node_t* node) {
@@ -68,10 +64,10 @@ static void graph_private_dummyFree(void* ptr) {
     return;
 }
 
-void graph_freeGraph(size_t nvalues, graph_node_t** graph, void (*free_fn)(void*)){
+void graph_freeGraph(size_t nvalues, graph_node_t* graph, void (*free_fn)(void*)){
     if(free_fn == NULL) free_fn = graph_private_dummyFree;
     for(size_t i = 0; i < nvalues; i++) {
-        free_fn(graph_freeNode(graph[i]));
+        free_fn(graph_freeNode(graph + i));
     }
 }
 
@@ -190,7 +186,7 @@ static graph_edge_t** graph_private_findPath(graph_node_t*** queue, graph_isGoal
     return NULL;
 }
 
-graph_edge_t** graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
+graph_edge_t* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
     if(node == NULL) return NULL;
     graph_node_t** queue = DYNARR_INIT(graph_node_t*);
     graph_node_t** visited = DYNARR_INIT(graph_node_t*);
@@ -200,32 +196,35 @@ graph_edge_t** graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_f
     graph_edge_t** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
     UNVISIT(visited);
     dynarr_free(queue);
-    graph_edge_t** tmp2 = malloc(sizeof(graph_edge_t*) * dynarr_getSize(tmp));
-    memcpy(tmp2,tmp, sizeof(graph_edge_t*) * dynarr_getSize(tmp));
+    size_t size = dynarr_getSize(tmp);
+    graph_edge_t* tmp2 = malloc(sizeof(graph_edge_t) * size);
+    for(size_t i = 0; i < size; i++) {
+        memcpy(tmp2 + i, tmp[i], sizeof(graph_edge_t));
+    }
     dynarr_free(tmp);
     return tmp2;
 }
 
-graph_node_t** graph_constructFromAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]) {
+graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]) {
     if(nvalues == 0) return NULL;
-    graph_node_t** nodes = malloc(sizeof(graph_node_t*) * nvalues);
+    graph_node_t* nodes = malloc(sizeof(graph_node_t) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
-        nodes[i] = graph_createNode(values[i]);
+        graph_initNode(nodes + i, values[i]);
     }
     for(size_t i = 0; i < nvalues; i++) {
         for(size_t j = 0; j < nvalues; j++) {
             if(isnan(adjencyMat[i][j])) continue;
-            graph_link(nodes[i], nodes[j], adjencyMat[i][j]);
+            graph_link(nodes + i, nodes + j, adjencyMat[i][j]);
         }
     }
     return nodes;
 }
 
-graph_node_t** graph_constructFromLinksArr(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted) {
+graph_node_t* graph_constructFromLinksArr(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted) {
     if(nvalues == 0) return NULL;
-    graph_node_t** nodes = malloc(sizeof(graph_node_t*) * nvalues);
+    graph_node_t* nodes = malloc(sizeof(graph_node_t) * nvalues);
     for(size_t i = 0; i < nvalues; i++) {
-        nodes[i] = graph_createNode(values[i]);
+        graph_initNode(nodes + i, values[i]);
     }
     size_t dest, src;
     double weight = 0;
@@ -234,7 +233,7 @@ graph_node_t** graph_constructFromLinksArr(size_t nvalues, void** values, size_t
         src = links[i].src;
         dest = links[i].dest;
         if(src >= 0 && src < nvalues && dest >= 0 && dest < nvalues) {
-            graph_link(nodes[src], nodes[dest], weight);
+            graph_link(nodes + src, nodes + dest, weight);
         }
     }
     return nodes;
