@@ -32,11 +32,11 @@ int main(int argc, char const *argv[])
     printf("\n");
 
     double adjMat[NVALUES][NVALUES] = {
-        {NAN, NAN, NAN, NAN, NAN}, // 0 -> .
-        {NAN, NAN,   0, NAN,   0}, // 1 -> 2, 4
-        {NAN, NAN, NAN,   0, NAN}, // 2 -> 3
-        {NAN, NAN,   0, NAN, NAN}, // 3 -> 2
-        {  0, NAN, NAN, NAN, NAN}  // 4 -> 0
+        {NaN, NaN, NaN, NaN, NaN}, // 0 -> .
+        {NaN, NaN,   0, NaN,   0}, // 1 -> 2, 4
+        {NaN, NaN, NaN,   0, NaN}, // 2 -> 3
+        {NaN, NaN,   0, NaN, NaN}, // 3 -> 2
+        {  0, NaN, NaN, NaN, NaN}  // 4 -> 0
     };
 
     graph = graph_constructFromAdjencyMat(NVALUES, values, adjMat);

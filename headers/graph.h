@@ -1,11 +1,9 @@
 #ifndef HEAD_GRAPH
 #define HEAD_GRAPH
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdbool.h>
-#include <math.h>
+
+#define NaN __builtin_nanf("")
 
 // create an edge from src to dest and add it to the src node
 #define graph_link(src, dest, weight) graph_addEdge(src, graph_createEdge(src,dest,weight))
