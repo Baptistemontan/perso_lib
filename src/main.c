@@ -1,9 +1,9 @@
 #include "../headers/all.h"
 
-#define SIZE 10
+#define SIZE 30
 #define DEFAULTDIST 1
 #define START 1 * SIZE + 2
-#define END 7 * SIZE + 3
+#define END 27 * SIZE + 29
 
 typedef struct {
     uint x, y;
@@ -58,28 +58,12 @@ int main(int argc, char const *argv[])
 
     graph_node_t* graph = graph_constructFromAdjencyMat(SIZE * SIZE, values, adjencyMat);
     size_t size;
-    node_t** path = NULL;
 
+    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
     printf("\nDijkstra :\n");
-
-    path = graph_findPath(graph + START, values[END], checkGoal, NULL, true, &size);
-
-    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
-    for(size_t i = 0; i < size; i++) {
-        printf("%u %u\n", path[i]->x, path[i]->y);
-    }
-    free(path);
-
-
+    free(graph_findPath(graph + START, values[END], checkGoal, NULL, true, &size));
     printf("\nA* :\n");
-
-    path = graph_findPath(graph + START, values[END], checkGoal, heuristic, true, &size);
-
-    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
-    for(size_t i = 0; i < size; i++) {
-        printf("%u %u\n", path[i]->x, path[i]->y);
-    }
-    free(path);
+    free(graph_findPath(graph + START, values[END], checkGoal, heuristic, true, &size));
 
 
     graph_freeGraph(SIZE * SIZE, graph, NULL);
