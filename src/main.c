@@ -9,7 +9,7 @@ typedef struct {
     uint x, y;
 } node_t;
 
-node_t (*createNodes(size_t size))[] {
+node_t* createNodes(size_t size) {
     node_t (*nodes)[size] = malloc(sizeof(node_t) * size * size);
     for(uint i = 0; i < size;i++) {
         for(uint j = 0; j < size; j++) {
@@ -17,14 +17,14 @@ node_t (*createNodes(size_t size))[] {
             nodes[i][j].y = j;
         }
     }
-    return nodes;
+    return (node_t*)nodes;
 }
 
 double heuristic(void* value, void* goal_) {
     node_t *current = value, *goal = goal_;
     uint a = (goal->x > current->x ? goal->x - current->x : current->x - goal->x);
     uint b = (goal->y > current->y ? goal->y - current->y : current->y - goal->y);
-    return (a + b) * 2;
+    return (a + b) * 2 * DEFAULTDIST;
 }
 
 
@@ -35,7 +35,7 @@ bool checkGoal(void *value, void* args) {
 
 int main(int argc, char const *argv[])
 {
-    node_t* nodes = (node_t*)createNodes(SIZE);
+    node_t* nodes = createNodes(SIZE);
 
     node_t* values[SIZE * SIZE];
     double adjencyMat[SIZE * SIZE][SIZE * SIZE];
@@ -59,7 +59,7 @@ int main(int argc, char const *argv[])
     graph_node_t* graph = graph_constructFromAdjencyMat(SIZE * SIZE, values, adjencyMat);
     size_t size;
 
-    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
+    printf("\npath from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
     printf("\nDijkstra :\n");
     free(graph_findPath(graph + START, values[END], checkGoal, NULL, true, &size));
     printf("\nA* :\n");
