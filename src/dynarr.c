@@ -218,3 +218,8 @@ void dynarr_qsort(void* arr, __compar_fn_t compar) {
     if(i == 0) return;
     qsort(arr,darray[i - 1]->size, darray[i - 1]->byteSize, compar);
 }
+
+size_t dynarr_currentArr() {
+    if(darray_info == NULL) return 0;
+    return darray_info->size;
+}

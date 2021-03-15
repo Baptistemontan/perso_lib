@@ -60,5 +60,8 @@ void* dynarr_lastDelElem();
 // just like a normal qsort but the byteSize, nmemb, ect is handled by the lib
 void dynarr_qsort(void* arr, __compar_fn_t compar);
 
+// return the current number of dynarr
+size_t dynarr_currentArr();
+
 
 #endif
