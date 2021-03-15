@@ -18,7 +18,7 @@ typedef struct graph_node_t
     void* value;
     double distance;
     double heuristic;
-    struct graph_edge_t* pathEdge;
+    struct graph_node_t* parent;
 } graph_node_t;
 
 typedef struct graph_edge_t
@@ -83,7 +83,7 @@ void graph_freeGraph(size_t nvalues, graph_node_t* graph, void (*free_fn)(void*)
 // if heuristic_fn is NULL and all edge weight is 0 this is just a BFS of the shortest path
 // return NULL if their is no path or the starting node is the goal 
 // (if you know all edges weight are 0, give false to the weighted parameter for optimisation)
-graph_edge_t* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted);
+void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted, size_t* size);
 
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the adjency matrice say
@@ -94,13 +94,13 @@ graph_edge_t* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn
 // the distance from values[a] to values[b] is adjencyMat[a][b]
 // and the distance from values[b] to values[a] is adjencyMat[b][a];
 // return NULL is nvalues == 0
-graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]);
+graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void* values, double (*adjencyMat)[nvalues]);
 
 
 // return an array of nvalues nodes where nodes[k] has the value values[k]
 // all nodes are linked together has the links array say
 // return NULL is nvalues == 0
-graph_node_t* graph_constructFromLinksArr(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted);
+graph_node_t* graph_constructFromLinksArr(size_t nvalues, void* values, size_t nlinks, graph_link_t* links, bool weighted);
 
 
 #endif

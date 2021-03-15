@@ -5,9 +5,15 @@
 #include "../headers/graph.h"
 #include "../headers/dynarr.h"
 
+typedef struct {
+    uint x, y;
+} node_t;
+
+
 #define UNVISIT(visited) for(size_t i = dynarr_getSize(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 #define MALLOCCHECK(val, callback) if(val == NULL) {fprintf(stderr,"Failed to allocate memory"); callback;}
 #define MALLOC2(type, valname, size, errorcallback) type valname = malloc(size); MALLOCCHECK(valname, errorcallback)
+#define STARTNODE ((void*)0xffffffffffffffff)
 
 graph_edge_t* graph_createEdge(graph_node_t* src, graph_node_t* dest, double weight) {
     MALLOC2(graph_edge_t*, edge, sizeof(graph_edge_t), return NULL);
@@ -22,7 +28,7 @@ void graph_initNode(graph_node_t* node, void* value) {
     node->value = value;
     node->visited = false;
     node->distance = 0;
-    node->pathEdge = NULL;
+    node->parent = NULL;
     node->heuristic = 0;
 }
 
@@ -36,7 +42,7 @@ void* graph_freeNode(graph_node_t* node) {
 }
 
 static void graph_private_reset(graph_node_t* node) {
-    node->pathEdge = NULL;
+    node->parent = NULL;
     node->distance = 0;
     node->visited = false;
 }
@@ -128,11 +134,10 @@ static int graph_private_sortDistUnweighted(const void* a, const void* b) {
     return (ia->heuristic > ib->heuristic) - (ia->heuristic < ib->heuristic);
 }
 
-static void* graph_private_findPath_visitNeighbours(graph_edge_t* edge, graph_heuristic_fn heuristic_fn, graph_node_t*** visited, graph_node_t*** queue, void* goalInfo) {
-    graph_node_t* parent = edge->src;
-    if(parent->distance + edge->weight < edge->dest->distance) {
-        edge->dest->pathEdge = edge;
-        edge->dest->distance = parent->distance + edge->weight;
+static void graph_private_findPath_visitNeighbours(graph_edge_t* edge, graph_heuristic_fn heuristic_fn, graph_node_t*** visited, graph_node_t*** queue, void* goalInfo) {
+    if(edge->src->distance + edge->weight < edge->dest->distance || edge->dest->parent == NULL) {
+        edge->dest->parent = edge->src;
+        edge->dest->distance = edge->src->distance + edge->weight;
     }
     if(edge->dest->visited == false){
         dynarr_pushBack(queue, &edge->dest);
@@ -140,19 +145,18 @@ static void* graph_private_findPath_visitNeighbours(graph_edge_t* edge, graph_he
         if(heuristic_fn != NULL) {
             edge->dest->heuristic = heuristic_fn(edge->dest->value, goalInfo);
         }
-    } 
-    return NULL;
+    }
 }
 
-static graph_edge_t** graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node_t*** visited, void* goalInfo, bool weighted) {
+static void* graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node_t*** visited, void* goalInfo, bool weighted) {
     graph_node_t* currentNode = NULL;
     while(dynarr_getSize(*queue)) {
-        currentNode = dynarr_popFront(queue);
+        currentNode = *(graph_node_t**)dynarr_popFront(queue);
         if(isGoal_fn(currentNode->value, goalInfo)) {
-            graph_edge_t** path = DYNARR_INIT(graph_edge_t*);
-            while(currentNode != NULL) {
-                dynarr_pushFront(&path, &currentNode->pathEdge);
-                currentNode = currentNode->pathEdge->src;
+            void** path = DYNARR_INIT(void*);
+            while(currentNode != STARTNODE) {
+                dynarr_pushFront(&path, &currentNode->value);
+                currentNode = currentNode->parent;
             }
             return path;
         }
@@ -168,26 +172,27 @@ static graph_edge_t** graph_private_findPath(graph_node_t*** queue, graph_isGoal
     return NULL;
 }
 
-graph_edge_t* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted) {
+void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted, size_t* size) {
+    *size = 0;
     if(node == NULL) return NULL;
+    node->parent = STARTNODE;
     graph_node_t** queue = DYNARR_INIT(graph_node_t*);
     graph_node_t** visited = DYNARR_INIT(graph_node_t*);
     node->visited = true;
     dynarr_pushBack(&visited, &node);
     dynarr_pushBack(&queue, &node);
-    graph_edge_t** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
+    void** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
     UNVISIT(visited);
     dynarr_free(queue);
-    size_t size = dynarr_getSize(tmp);
-    MALLOC2(graph_edge_t*, tmp2, sizeof(graph_edge_t) * size, return NULL);
-    for(size_t i = 0; i < size; i++) {
-        memcpy(tmp2 + i, tmp[i], sizeof(graph_edge_t));
-    }
+    *size = dynarr_getSize(tmp);
+    MALLOC2(void**, tmp2, *size * sizeof(void*), return NULL);
+    memcpy(tmp2, tmp, *size * sizeof(void*));
     dynarr_free(tmp);
     return tmp2;
 }
 
-graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void** values, double (*adjencyMat)[nvalues]) {
+graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void* values_, double (*adjencyMat)[nvalues]) {
+    void** values = values_;
     if(nvalues == 0) return NULL;
     MALLOC2(graph_node_t*, nodes, sizeof(graph_node_t) * nvalues, return NULL);
     for(size_t i = 0; i < nvalues; i++) {
@@ -202,7 +207,8 @@ graph_node_t* graph_constructFromAdjencyMat(size_t nvalues, void** values, doubl
     return nodes;
 }
 
-graph_node_t* graph_constructFromLinksArr(size_t nvalues, void** values, size_t nlinks, graph_link_t* links, bool weighted) {
+graph_node_t* graph_constructFromLinksArr(size_t nvalues, void* values_, size_t nlinks, graph_link_t* links, bool weighted) {
+    void** values = values_;
     if(nvalues == 0) return NULL;
     MALLOC2(graph_node_t*, nodes, sizeof(graph_node_t) * nvalues, return NULL);
     for(size_t i = 0; i < nvalues; i++) {

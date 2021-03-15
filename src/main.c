@@ -1,54 +1,66 @@
 #include "../headers/all.h"
 
-#define NVALUES 5
-#define NLINKS 5
+#define SIZE 10
+#define DEFAULTDIST 1
+#define START 1 * SIZE + 2
+#define END 7 * SIZE + 3
 
-void* printInt(void* a, void* args) {
-    printf("%d\n", *(int*)a);
-    return NULL;
+typedef struct {
+    uint x, y;
+} node_t;
+
+node_t (*createNodes(size_t size))[] {
+    node_t (*nodes)[size] = malloc(sizeof(node_t) * size * size);
+    for(uint i = 0; i < size;i++) {
+        for(uint j = 0; j < size; j++) {
+            nodes[i][j].x = i;
+            nodes[i][j].y = j;
+        }
+    }
+    return nodes;
 }
+
+
+bool checkGoal(void *value, void* args) {
+    return value == args;
+}
+
 
 int main(int argc, char const *argv[])
 {
-    int intVal[NVALUES] = {0, 1, 2, 3, 4};
-    void* values[NVALUES];
-    for (size_t i = 0; i < NVALUES; i++) {
-        values[i] = intVal + i;
+    node_t* nodes = (node_t*)createNodes(SIZE);
+
+    node_t* values[SIZE * SIZE];
+    double adjencyMat[SIZE * SIZE][SIZE * SIZE];
+
+    for(uint i = 0; i < SIZE * SIZE; i++) {
+        values[i] = nodes + i;
+        for(uint j = 0; j < SIZE * SIZE; j++) {
+            adjencyMat[i][j] = NaN;
+        }
     }
-    
-    graph_link_t links[NLINKS] = {
-        {.src = 1, .dest = 2},
-        {.src = 2, .dest = 3},
-        {.src = 3, .dest = 2},
-        {.src = 1, .dest = 4},
-        {.src = 4, .dest = 0}
-    };
-    graph_node_t* graph = graph_constructFromLinksArr(NVALUES, values, NLINKS, links, 0);
 
-    graph_DFS(graph + 1, printInt, NULL);
+    for(int i = 0; i < SIZE; i++) {
+        for(int j = 0; j < SIZE; j++) {
+            if(i - 1 >= 0) adjencyMat[i * SIZE + j][(i - 1) * SIZE + j] = DEFAULTDIST;
+            if(i + 1 < SIZE) adjencyMat[i * SIZE + j][(i + 1) * SIZE + j] = DEFAULTDIST;
+            if(j - 1 >= 0) adjencyMat[i * SIZE + j][i * SIZE + j - 1] = DEFAULTDIST;
+            if(j + 1 < SIZE) adjencyMat[i * SIZE + j][i * SIZE + j + 1] = DEFAULTDIST;
+        }
+    }
 
-    graph_freeGraph(NVALUES, graph, NULL);
+    graph_node_t* graph = graph_constructFromAdjencyMat(SIZE * SIZE, values, adjencyMat);
+    size_t size;
+    node_t** path = graph_findPath(graph + START, values[END], checkGoal, NULL, false, &size);
 
-    printf("\n");
+    printf("path from %u %u to %u %u :\n", values[START]->x, values[START]->y, values[END]->x, values[END]->y);
+    for(size_t i = 0; i < size; i++) {
+        printf("%u %u\n", path[i]->x, path[i]->y);
+    }
 
-    double adjMat[NVALUES][NVALUES] = {
-        {NaN, NaN, NaN, NaN, NaN}, // 0 -> .
-        {NaN, NaN,   0, NaN,   0}, // 1 -> 2, 4
-        {NaN, NaN, NaN,   0, NaN}, // 2 -> 3
-        {NaN, NaN,   0, NaN, NaN}, // 3 -> 2
-        {  0, NaN, NaN, NaN, NaN}  // 4 -> 0
-    };
-
-    graph = graph_constructFromAdjencyMat(NVALUES, values, adjMat);
-
-    graph_DFS(graph + 1, printInt, NULL);
-
-    intVal[0] = 17;
-    printf("\n");
-
-    graph_BFS(graph + 1, printInt, NULL);
-
-    graph_freeGraph(NVALUES, graph, NULL);
+    free(path);
+    graph_freeGraph(SIZE * SIZE, graph, NULL);
+    free(nodes);
 
     return EXIT_SUCCESS;
 }
