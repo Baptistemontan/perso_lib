@@ -7,8 +7,8 @@
 
 // return an address of an array
 // must be free with dynarr_free()
-// byteSize is the size of one element like sizeof(int)
-void* dynarr_create(size_t byteSize);
+// memSize is the size of one element like sizeof(int)
+void* dynarr_create(size_t memSize);
 
 // push the value of the ptr to the back of the given array
 // take the adress of the array ptr in arguments
@@ -51,7 +51,7 @@ void* dynarr_popFront(void* arr_ptr);
 void* dynarr_lastDelElem();
 
 // sort the entire array with the compare fonction
-// just like a normal qsort but the byteSize, nmemb, ect is handled by the lib
+// just like a normal qsort but the memSize, nmemb, ect is handled by the lib
 void dynarr_qsort(void* arr, __compar_fn_t compar);
 
 

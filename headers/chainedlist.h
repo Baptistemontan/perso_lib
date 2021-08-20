@@ -50,7 +50,7 @@ void cl_forEach(cl_node* head, cl_forEach_fn todo_fn);
 
 // free the entire list and pass all values to free_fn
 // just destroy the list if free_fn is NULL
-void cl_free(cl_node** head, cl_free_fn free_fn);
+void cl_free(cl_node* head, cl_free_fn free_fn);
 
 // find the index of the given value with the compare func
 // directly compare the values if comp_fn is NULL

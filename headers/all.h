@@ -13,9 +13,10 @@
 #include "hashtable.h"
 #include "tree.h"
 #include "chainedlist.h"
-#include "dynarr.h"
+// #include "dynarr.h"
 #include "misc.h"
 #include "graph.h"
+#include "dynarr_t.h"
 
 #define ASSETS "./assets"
 

@@ -1,17 +1,17 @@
 #include "../headers/dynarr.h"
 
 #define SHIFT(n) (1 << n) // fast 2^n
-#define SAVEBUFF(src, byteSize) free(tmpBuff); tmpBuff = malloc(byteSize); memcpy(tmpBuff,src,byteSize);
+#define SAVEBUFF(src, memSize) free(tmpBuff); tmpBuff = malloc(memSize); memcpy(tmpBuff,src,memSize);
 
 typedef struct {
     void* baseArr; // adress of the allocated array
     size_t baseSize; // log2 of the allocated size for the array
     size_t size; // number of elem in arr
     size_t offset; // discarded element beetween baseAr and arr
-    size_t byteSize; // size of 1 element
+    size_t memSize; // size of 1 element
 } dynarr_arr;
 
-static dynarr_arr* dynarr_private_init(size_t byteSize);
+static dynarr_arr* dynarr_private_init(size_t memSize);
 static void dynarr_private_popBack(dynarr_arr* arr);
 
 // temp buff for pop functions
@@ -26,26 +26,26 @@ static dynarr_arr* dynarr_private_getInfo(void* arr) {
     return *arrInfo;
 }
 
-static dynarr_arr* dynarr_private_init(size_t byteSize) {
+static dynarr_arr* dynarr_private_init(size_t memSize) {
     dynarr_arr* arr = malloc(sizeof(dynarr_arr));
     arr->baseSize = 0;
     arr->size = arr->offset = 0;
-    arr->byteSize = byteSize;
-    void* baseArr = malloc(byteSize + sizeof(dynarr_arr*));
+    arr->memSize = memSize;
+    void* baseArr = malloc(memSize + sizeof(dynarr_arr*));
     arr->baseArr = baseArr + sizeof(dynarr_arr*);
     memcpy(baseArr, &arr, sizeof(dynarr_arr*));
     return arr;
 }
 
-void* dynarr_create(size_t byteSize) {
-    if(byteSize == 0) return NULL;
-    dynarr_arr* darr = dynarr_private_init(byteSize);
+void* dynarr_create(size_t memSize) {
+    if(memSize == 0) return NULL;
+    dynarr_arr* darr = dynarr_private_init(memSize);
     return darr->baseArr;
 }
 
 static void dynarr_private_resize(dynarr_arr* arr, size_t newBaseSize) {
-    void* newArr = malloc(arr->byteSize * SHIFT(newBaseSize) + sizeof(dynarr_arr*));
-    memcpy(newArr + sizeof(dynarr_arr*), arr->baseArr + arr->offset * arr->byteSize, arr->size * arr->byteSize);
+    void* newArr = malloc(arr->memSize * SHIFT(newBaseSize) + sizeof(dynarr_arr*));
+    memcpy(newArr + sizeof(dynarr_arr*), arr->baseArr + arr->offset * arr->memSize, arr->size * arr->memSize);
     memcpy(newArr, &arr, sizeof(dynarr_arr*));
     free(arr->baseArr - sizeof(dynarr_arr*));
     arr->baseArr = newArr + sizeof(dynarr_arr*);
@@ -68,7 +68,7 @@ static void dynarr_private_reduce(dynarr_arr* arr) {
 
 static void dynarr_private_pushBack(dynarr_arr* arr, void* value) {
     dynarr_private_extend(arr);
-    memcpy(arr->baseArr + (arr->offset + arr->size) * arr->byteSize, value, arr->byteSize);
+    memcpy(arr->baseArr + (arr->offset + arr->size) * arr->memSize, value, arr->memSize);
     arr->size++;
 }
 
@@ -76,7 +76,7 @@ void* dynarr_pushBack(void* arrAdd, void* value) {
     if(value == NULL || arrAdd == NULL) return NULL;
     dynarr_arr* tmp = dynarr_private_getInfo(*(void**)arrAdd);
     dynarr_private_pushBack(tmp, value);
-    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->byteSize;
+    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->memSize;
     return value;
 }
 
@@ -84,12 +84,12 @@ static void dynarr_private_pushFront(dynarr_arr* arr, void* value) {
     if(arr->offset > 0) {
         arr->offset--;
         arr->size++;
-        memcpy(arr->baseArr + arr->offset * arr->byteSize, value, arr->byteSize);
-        memcpy(arr->baseArr + arr->offset * arr->byteSize - sizeof(dynarr_arr*), &arr, sizeof(dynarr_arr*));
+        memcpy(arr->baseArr + arr->offset * arr->memSize, value, arr->memSize);
+        memcpy(arr->baseArr + arr->offset * arr->memSize - sizeof(dynarr_arr*), &arr, sizeof(dynarr_arr*));
     } else {
         dynarr_private_extend(arr);
         arr->offset = SHIFT(arr->baseSize) - arr->size;
-        memmove(arr->baseArr + arr->offset * arr->byteSize, arr->baseArr, arr->size * arr->byteSize);
+        memmove(arr->baseArr + arr->offset * arr->memSize, arr->baseArr, arr->size * arr->memSize);
         dynarr_private_pushFront(arr,value);
     }
 }
@@ -98,7 +98,7 @@ void* dynarr_pushFront(void* arrAdd, void* value) {
     if(value == NULL || arrAdd == NULL) return NULL;
     dynarr_arr* tmp = dynarr_private_getInfo(*(void**)arrAdd);
     dynarr_private_pushFront(tmp, value);
-    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->byteSize;
+    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->memSize;
     return value;
 }
 
@@ -116,7 +116,7 @@ void dynarr_free(void* arr) {
 
 static void dynarr_private_popBack(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    SAVEBUFF(arr->baseArr + (arr->offset + arr->size - 1) * arr->byteSize, arr->byteSize);
+    SAVEBUFF(arr->baseArr + (arr->offset + arr->size - 1) * arr->memSize, arr->memSize);
     arr->size--;
     dynarr_private_reduce(arr);
 }
@@ -126,16 +126,16 @@ void* dynarr_popBack(void* arrAdd) {
     dynarr_arr* tmp = dynarr_private_getInfo(*(void**)arrAdd);
     if(tmp->size == 0) return NULL;
     dynarr_private_popBack(tmp);
-    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->byteSize;
+    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->memSize;
     return tmpBuff;
 }
 
 static void dynarr_private_popFront(dynarr_arr* arr) {
     if(arr->size == 0) return;
-    SAVEBUFF(arr->baseArr + arr->offset * arr->byteSize, arr->byteSize);
+    SAVEBUFF(arr->baseArr + arr->offset * arr->memSize, arr->memSize);
     arr->size--;
     arr->offset++;
-    memcpy(arr->baseArr + arr->offset * arr->byteSize - sizeof(dynarr_arr*), &arr, sizeof(dynarr_arr*));
+    memcpy(arr->baseArr + arr->offset * arr->memSize - sizeof(dynarr_arr*), &arr, sizeof(dynarr_arr*));
     dynarr_private_reduce(arr);
 }
 
@@ -144,7 +144,7 @@ void* dynarr_popFront(void* arrAdd) {
     dynarr_arr* tmp = dynarr_private_getInfo(*(void**)arrAdd);
     if(tmp->size == 0) return NULL;
     dynarr_private_popFront(tmp);
-    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->byteSize;
+    *(void**)arrAdd = tmp->baseArr + tmp->offset * tmp->memSize;
     return tmpBuff;
 }
 
@@ -155,5 +155,5 @@ void* dynarr_lastDelElem() {
 void dynarr_qsort(void* arr, __compar_fn_t compar) {
     if(arr == NULL) return;
     dynarr_arr* tmp = dynarr_private_getInfo(arr);
-    qsort(arr, tmp->size, tmp->byteSize, compar);
+    qsort(arr, tmp->size, tmp->memSize, compar);
 }

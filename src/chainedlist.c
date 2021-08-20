@@ -49,9 +49,10 @@ void cl_forEach(cl_node* list,cl_forEach_fn todo_fn) {
     }
 }
 
-void cl_free(cl_node** list, cl_free_fn free_fn) {
-    while ((*list) != NULL) {
-        void* tmp = cl_remove(list);
+void cl_free(cl_node* list, cl_free_fn free_fn) {
+    cl_node** list_ = &list;
+    while ((*list_) != NULL) {
+        void* tmp = cl_remove(list_);
         if(free_fn != NULL) free_fn(tmp);
     }
 }

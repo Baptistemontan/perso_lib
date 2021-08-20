@@ -6,7 +6,7 @@
 #include "../headers/dynarr.h"
 
 
-#define UNVISIT(visited) for(size_t i = dynarr_getSize(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
+#define UNVISIT(visited) for(size_t i = dynarr_size(visited); i > 0; i--){graph_private_reset(visited[i - 1]);}; dynarr_free(visited)
 #define MALLOCCHECK(val, callback) if(val == NULL) {fprintf(stderr,"Failed to allocate memory"); callback;}
 #define MALLOC2(type, valname, size, errorcallback) type valname = malloc(size); MALLOCCHECK(valname, errorcallback)
 #define STARTNODE ((void*)0xffffffffffffffff)
@@ -20,7 +20,7 @@ graph_edge_t* graph_createEdge(graph_node_t* src, graph_node_t* dest, double wei
 }
 
 void graph_initNode(graph_node_t* node, void* value) {
-    node->edges = DYNARR_INIT(graph_edge_t*);
+    node->edges = dynarr_create(sizeof(graph_edge_t*));
     node->value = value;
     node->visited = false;
     node->distance = 0;
@@ -30,7 +30,7 @@ void graph_initNode(graph_node_t* node, void* value) {
 
 void* graph_freeNode(graph_node_t* node) {
     if(node == NULL) return NULL;
-    for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
+    for(size_t i = dynarr_size(node->edges); i > 0; i--) {
         free(node->edges[i - 1]);
     }
     dynarr_free(node->edges);
@@ -70,7 +70,7 @@ static void* graph_private_DFS(graph_node_t* node, graph_node_t*** visited, grap
     if(node == NULL || node->visited) return NULL;
     graph_private_addVisited(visited, node);
     void* test = NULL;
-    for(size_t i = dynarr_getSize(node->edges); i > 0; i--) {
+    for(size_t i = dynarr_size(node->edges); i > 0; i--) {
         test = graph_private_DFS(node->edges[i - 1]->dest, visited, todo_fn, args);
         if(test != NULL) return test;
     }
@@ -79,7 +79,7 @@ static void* graph_private_DFS(graph_node_t* node, graph_node_t*** visited, grap
 
 void* graph_DFS(graph_node_t* node, graph_todo_fn todo_fn, void* args) {
     if(node == NULL) return NULL;
-    graph_node_t** visited = DYNARR_INIT(graph_node_t*);
+    graph_node_t** visited = dynarr_create(sizeof(graph_node_t*));
     void* tmp = graph_private_DFS(node, &visited, todo_fn, args);
     UNVISIT(visited);
     return tmp;
@@ -94,11 +94,11 @@ static void graph_private_BFS_addUnvisited(graph_node_t* node, graph_node_t*** q
 static void* graph_private_BFS(graph_node_t*** queue, graph_todo_fn todo_fn, graph_node_t*** visited, void* args) {
     graph_node_t* currentNode = NULL;
     void* test = NULL;
-    while(dynarr_getSize(*queue)) {
+    while(dynarr_size(*queue)) {
         currentNode = *(graph_node_t**)dynarr_popFront(queue);
         test = todo_fn(currentNode->value, args);
         if(test != NULL) return test;
-        for(size_t i = dynarr_getSize(currentNode->edges); i > 0; i--) {
+        for(size_t i = dynarr_size(currentNode->edges); i > 0; i--) {
             graph_private_BFS_addUnvisited(currentNode->edges[i - 1]->dest,queue,visited);
         }
     }
@@ -107,8 +107,8 @@ static void* graph_private_BFS(graph_node_t*** queue, graph_todo_fn todo_fn, gra
 
 void* graph_BFS(graph_node_t* node, graph_todo_fn todo_fn, void* args) {
     if(node == NULL) return NULL;
-    graph_node_t** queue = DYNARR_INIT(graph_node_t*);
-    graph_node_t** visited = DYNARR_INIT(graph_node_t*);
+    graph_node_t** queue = dynarr_create(sizeof(graph_node_t*));
+    graph_node_t** visited = dynarr_create(sizeof(graph_node_t*));
     graph_private_BFS_addUnvisited(node, &queue, &visited);
     void* tmp = graph_private_BFS(&queue, todo_fn, &visited, args);
     UNVISIT(visited);
@@ -147,17 +147,17 @@ static void graph_private_findPath_visitNeighbours(graph_edge_t* edge, graph_heu
 
 static void* graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, graph_node_t*** visited, void* goalInfo, bool weighted) {
     graph_node_t* currentNode = NULL;
-    while(dynarr_getSize(*queue)) {
+    while(dynarr_size(*queue)) {
         currentNode = *(graph_node_t**)dynarr_popFront(queue);
         if(isGoal_fn(currentNode->value, goalInfo)) {
-            void** path = DYNARR_INIT(void*);
+            void** path = dynarr_create(sizeof(void*));
             while(currentNode != STARTNODE) {
                 dynarr_pushFront(&path, &currentNode->value);
                 currentNode = currentNode->parent;
             }
             return path;
         }
-        for(size_t i = dynarr_getSize(currentNode->edges); i > 0; i--) {
+        for(size_t i = dynarr_size(currentNode->edges); i > 0; i--) {
             graph_private_findPath_visitNeighbours(currentNode->edges[i - 1], heuristic_fn, visited, queue, goalInfo);
         }
         if(weighted) {
@@ -172,22 +172,22 @@ static void* graph_private_findPath(graph_node_t*** queue, graph_isGoal_fn isGoa
 void* graph_findPath(graph_node_t* node, void* goalInfo, graph_isGoal_fn isGoal_fn, graph_heuristic_fn heuristic_fn, bool weighted, size_t* size) {
     if(node == NULL || isGoal_fn == NULL) return NULL;
     node->parent = STARTNODE;
-    graph_node_t** queue = DYNARR_INIT(graph_node_t*);
-    graph_node_t** visited = DYNARR_INIT(graph_node_t*);
+    graph_node_t** queue = dynarr_create(sizeof(graph_node_t*));
+    graph_node_t** visited = dynarr_create(sizeof(graph_node_t*));
     node->visited = true;
     dynarr_pushBack(&visited, &node);
     dynarr_pushBack(&queue, &node);
     void** tmp = graph_private_findPath(&queue, isGoal_fn, heuristic_fn, &visited, goalInfo, weighted);
 
 
-    size_t vsize = dynarr_getSize(visited);
+    size_t vsize = dynarr_size(visited);
     printf("visited : %lu\n", vsize);
 
 
 
     UNVISIT(visited);
     dynarr_free(queue);
-    size_t size_ = dynarr_getSize(tmp);
+    size_t size_ = dynarr_size(tmp);
     MALLOC2(void**, tmp2, size_ * sizeof(void*), return NULL);
     memcpy(tmp2, tmp, size_ * sizeof(void*));
     if(size == NULL) *size = size_;
