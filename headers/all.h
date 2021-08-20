@@ -16,7 +16,7 @@
 // #include "dynarr.h"
 #include "misc.h"
 #include "graph.h"
-#include "dynarr_t.h"
+#include "vector.h"
 
 #define ASSETS "./assets"
 

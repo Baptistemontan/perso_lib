@@ -21,7 +21,7 @@ sudoku = sudoku
 CC = gcc
 CFLAGS = -O3 #Option d'optimisation du programme
 FLAGS = -lm -lpthread -Wall
-OBJ= $(FOL)/main.o $(FOL)/hashtable.o $(FOL)/tree.o $(FOL)/dynarr_t.o $(FOL)/chainedlist.o $(FOL)/misc.o # $(FOL)/graph.o
+OBJ= $(FOL)/main.o $(FOL)/hashtable.o $(FOL)/tree.o $(FOL)/dynarr.o $(FOL)/chainedlist.o $(FOL)/misc.o $(FOL)/vector.o # $(FOL)/graph.o
 
 
 all : $(FOL) $(FOL)/$(EXEC)
